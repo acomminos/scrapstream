@@ -13,3 +13,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Example JTVLC command:
+# jtvlc acomminos live_32117398_9ziSWTnePUNdfFLowt30egliPvatUx ~/.scrapstream.sdp
+
+import jtvlc
+
+stream_username = ""
+stream_key = ""
+
+def run_jtvlc():
+    """ Creates a JTVLC instance with the SDP file created by VLC. """
+    jtvlc_path = os.path.join(os.getcwd(), JTVLC_FOLDER, "jtvlc")
+    jtvlc_args = [jtvlc_path,
+                  stream_username,
+                  stream_key,
+                  vlc_manager.sdp_path]
+    subprocess.Popen(jtvlc_args)
+
+def set_credentials(username, stream_key):
+    stream_username = username
+    stream_key = stream_key

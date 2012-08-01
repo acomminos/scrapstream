@@ -16,6 +16,7 @@
 
 from gi.repository import Gtk
 import vlc_manager
+import jtvlc_manager
 
 class StreamWindow(object):
 
@@ -29,6 +30,8 @@ class StreamWindow(object):
 		builder = Gtk.Builder()
 		builder.add_from_file("xml/stream_dialog.glade")
 		self.dialog = builder.get_object("dialog1")
+		self.username_entry = builder.get_object("username_entry")
+		self.stream_key_entry = builder.get_object("stream_key_entry")
 		builder.connect_signals(handlers)
 
 	def show(self):
@@ -37,6 +40,11 @@ class StreamWindow(object):
 	def stream(self, button, userdata=None):
 		print "HHHHSTREAMING!"
 		vlc_manager.run_stream()
+
+		username = self.username_entry.get_text()
+		stream_key = self.stream_key_entry.get_text()
+		jtvlc_manager.set_credentials(username, stream_key)
+		jtvlc_manager.run_jtvlc()
 
 	def quit(self, button, userdata=None):
 		self.dialog.hide()
