@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gtk
+import vlc_manager
 
 class StreamWindow(object):
 
@@ -35,6 +36,7 @@ class StreamWindow(object):
 
 	def stream(self, button, userdata=None):
 		print "HHHHSTREAMING!"
+		vlc_manager.run_stream()
 
 	def quit(self, button, userdata=None):
 		self.dialog.hide()

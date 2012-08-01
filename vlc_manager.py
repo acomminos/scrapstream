@@ -30,13 +30,11 @@ frame_rate = 30
 vlc_pid = 0
 
 def run_stream():
-	""" Creates a new VLC instance with the properties. """
-	vlc_command = "vlc screen:// -vvv input_stream \
-	--sout='#duplicate{dst=display, dst=\"transcode{venc=x264{keyint=60,idrint=2},scale=%(scale)f,vcodec=h264,vb=300,acodec=mp4a,ab=32,channels=2,samplerate=44100}\
-	:rtp{dst=127.0.0.1,port=1234,sdp=file:///home/andrew/vlc.sdp}\"}' \
-	--screen-width %(screen_width)d --screen-height %(screen_height)d --screen-fps %(frame_rate)d" % \
-	{'scale': VLCManager.capture_scale, 'screen_width': VLCManager.capture_width, 'screen_height': VLCManager.capture_height, 'frame_rate': VLCManager.frame_rate}
-
-	print vlc_command
-	
-	subprocess.call(vlc_command)
+    """ Creates a new VLC instance with the properties. """
+    vlc_command = "vlc screen:// -vvv input_stream \
+    --sout='#duplicate{dst=display, dst=\"transcode{venc=x264{keyint=60,idrint=2},scale=%(scale)f,vcodec=h264,vb=300,acodec=mp4a,ab=32,channels=2,samplerate=44100}\
+    :rtp{dst=127.0.0.1,port=1234,sdp=file:///home/andrew/vlc.sdp}\"}' \
+    --screen-fps %(frame_rate)d --screen-width %(screen_width)d --screen-height %(screen_height)d" % \
+    {'scale': capture_scale, 'screen_width': capture_width, 'screen_height': capture_height, 'frame_rate': frame_rate}
+    
+    subprocess.call(vlc_command, shell=True)
