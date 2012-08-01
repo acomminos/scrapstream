@@ -20,6 +20,7 @@
 import threading
 import subprocess
 import getpass
+import os
 
 # Constants
 sdp_name = ".scrapstream.sdp"
@@ -28,17 +29,29 @@ sdp_path = "file:///home/%(username)s/%(sdp_name)s" % {'username': getpass.getus
 # Default streaming properties
 capture_width = 1920
 capture_height = 1080
-capture_scale = 1
-frame_rate = 30
-vlc_pid = 0
+capture_scale = 0.5
+frame_rate = 15
+vlc_process = None
 
-def run_stream():
+def start_vlc():
     """ Creates a new VLC instance with the properties. """
+    global vlc_process
     vlc_args = ["cvlc",
                 "screen://",
                 "input_stream",
-                "--sout=#duplicate{dst=display, dst='transcode{venc=x264{keyint=60,idrint=2},scale=%(scale)f,vcodec=h264,vb=300,acodec=mp4a,ab=32,channels=2,samplerate=44100}:rtp{dst=127.0.0.1,port=1234,sdp=%(sdp_path)s}''}" % {'scale': capture_scale, 'sdp_path': sdp_path},
+                "--sout=#transcode{venc=x264{keyint=60,idrint=2},vcodec=h264,vb=300,scale=%(scale)f}:rtp{dst=127.0.0.1,port=1234,sdp=%(sdp_path)s}" % {'scale': capture_scale, 'sdp_path': sdp_path},
                 "--screen-fps", str(frame_rate),
                 "--screen-width", str(capture_width),
                 "--screen-height", str(capture_height)]
-    subprocess.Popen(vlc_args)
+    vlc_process = subprocess.Popen(vlc_args)
+    print "Created VLC with PID %d!" % vlc_process.pid
+
+def stop_vlc():
+    global vlc_process
+    if vlc_process is not None:
+        print "Killing VLC with PID %d..." % vlc_process.pid
+        vlc_process.terminate()
+        vlc_process.wait()
+        vlc_process = None
+    else:
+        print "Can't kill VLC- it isn't running!"

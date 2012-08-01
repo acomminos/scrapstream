@@ -17,6 +17,7 @@
 from gi.repository import Gtk
 import vlc_manager
 import jtvlc_manager
+from threading import Timer
 
 class StreamWindow(object):
 
@@ -38,14 +39,14 @@ class StreamWindow(object):
 		self.dialog.show_all()
 
 	def stream(self, button, userdata=None):
-		print "HHHHSTREAMING!"
-		vlc_manager.run_stream()
+		print "Starting streaming..."
+		vlc_manager.start_vlc()
 
 		username = self.username_entry.get_text()
 		stream_key = self.stream_key_entry.get_text()
 		jtvlc_manager.set_credentials(username, stream_key)
-		jtvlc_manager.run_jtvlc()
 
 	def quit(self, button, userdata=None):
+		vlc_manager.stop_vlc()
 		self.dialog.hide()
 		return True # Prevents the window from being destroyed. We only want to hide.
