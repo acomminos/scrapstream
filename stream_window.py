@@ -19,9 +19,23 @@ from gi.repository import Gtk
 class StreamWindow(object):
 
 	def __init__(self):
+		handlers = {
+			"onLiveActivate": self.stream,
+			"onCancelActivate": self.quit,
+			"delete-event": self.quit
+		}
+
 		builder = Gtk.Builder()
 		builder.add_from_file("xml/stream_dialog.glade")
 		self.dialog = builder.get_object("dialog1")
+		builder.connect_signals(handlers)
 
 	def show(self):
 		self.dialog.show_all()
+
+	def stream(self, button, userdata=None):
+		print "HHHHSTREAMING!"
+
+	def quit(self, button, userdata=None):
+		self.dialog.hide()
+		return True # Prevents the window from being destroyed. We only want to hide.

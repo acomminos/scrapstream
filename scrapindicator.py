@@ -20,10 +20,6 @@ from stream_window import StreamWindow
 
 class ScrapIndicator(object):
 
-    def start_stream(self, w, buf):
-        stream_window = StreamWindow()
-        stream_window.show()
-
     def __init__(self):
         self.indicator = appindicator.Indicator.new("scrapstream-client", "account-logged-in", appindicator.IndicatorCategory.APPLICATION_STATUS)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
@@ -32,7 +28,6 @@ class ScrapIndicator(object):
         menu = Gtk.Menu()
 
         # create items
-
         stream_title = "Go Live!"
         stream_item = Gtk.MenuItem(stream_title)
         stream_item.connect("activate", self.start_stream, stream_title)
@@ -45,7 +40,7 @@ class ScrapIndicator(object):
 
         settings_title = "Settings"
         settings_item = Gtk.MenuItem(settings_title)
-        settings_item.connect("activate", Gtk.main_quit, settings_title)
+        settings_item.connect("activate", self.show_settings, settings_title)
         menu.append(settings_item)
         settings_item.show()
 
@@ -55,7 +50,14 @@ class ScrapIndicator(object):
         menu.append(quit_item)
         quit_item.show()
 
-        # this is where you would connect your menu item up with a function:
-        # menu_items.connect("activate", menuitem_response, buf)
-        
         self.indicator.set_menu(menu)
+
+        # Create stream window
+        self.stream_window = StreamWindow()
+
+    def start_stream(self, widget, data):
+        self.stream_window.show()
+
+    def show_settings(self, widget, data):
+        #settings_window = Setting
+        print "Show settings"
