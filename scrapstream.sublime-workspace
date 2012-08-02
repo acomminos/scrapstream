@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"Scraps",
+				"ScrapstreamState"
+			],
+			[
+				"JTVLC",
+				"JTVLC_FOLDER"
+			],
+			[
 				"damag",
 				"damage_value"
 			],
@@ -27,6 +35,73 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "src/main.py",
+			"settings":
+			{
+				"buffer_size": 849,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/jtvlc_manager.py",
+			"settings":
+			{
+				"buffer_size": 1602,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/vlc_manager.py",
+			"settings":
+			{
+				"buffer_size": 3503,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/aboutwindow.py",
+			"settings":
+			{
+				"buffer_size": 970,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/streamsettings.py",
+			"settings":
+			{
+				"buffer_size": 814,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "#!/usr/bin/env python\n#\n#       Name:           Jtvlc\n#       Author:         Vladislav Yazhbin <vlad@justin.tv>\n#       Date:           8/10/2009\n#       Version:        0.41\n#\n#       Description:    Broadcast on Justin.tv with VLC\n#\n###############################################################################################################\n\nfrom twisted.internet.protocol import ClientFactory, ServerFactory, DatagramProtocol\nfrom twisted.web.client import getPage\nimport urllib\nfrom twisted.protocols.basic import LineReceiver\nfrom twisted.internet import reactor\nimport sys\nimport hashlib\nimport math\nimport time, datetime\nfrom config import *\n\n\nclass Tool:\n    VLC, QTBROADCASTER = range(2)\ntool = Tool.VLC\n\nclass RTSP_RTP_Client(LineReceiver):                 # for connecting to VideoServer via RTSP over TCP, then sending RTP packets\n    class State:\n        ANNOUNCE, TRACK_1, TRACK_2, RECORD, STREAM, PAUSE, TEARDOWN = range(7)\n    \n    def __init__(self):\n        self.state = self.State.ANNOUNCE\n        self.session = None\n        self.nonce = None\n        self.seq = 0\n        LineReceiver.setRawMode(self)\n        global video_server_connection\n        video_server_connection = self\n            \n    def processState(self):\n        self.seq+=1\n        #if self.seq >= 6:\n        #    print \"DONE\"\n        #    return\n            \n        if self.state == self.State.ANNOUNCE:\n            self.sendAnnounce(uri)\n        elif self.state == self.State.TRACK_1:\n            self.sendSetup('%s/trackid=1' % uri, 'RTP/AVP/TCP;unicast;mode=record;interleaved=0-1')\n            if len(rtp_ports) == 1:\n                self.state = self.State.TRACK_2\n        elif self.state == self.State.TRACK_2:\n            self.sendSetup('%s/trackid=2' % uri, 'RTP/AVP/TCP;unicast;mode=record;interleaved=2-3')\n        elif self.state == self.State.RECORD:\n            self.sendRecord(uri)\n            if tool == Tool.VLC:\n                startListeningForRDP_UDP()\n        elif self.state == self.State.PAUSE:\n            self.sendPause(uri)\n        elif self.state == self.State.TEARDOWN:\n            self.sendTeardown(uri)\n            \n    def connectionMade(self):\n        self.processState()\n    \n    def datagramReceived(self, datagram, address):\n        self.dataReceived(self, datagram)\n        \n    def dataReceived(self, data):\n        for line in data.split('\\r\\n'):\n            self.lineReceived(line)\n        self.processState()\n         \n    def lineReceived(self, line):  \n        writeSecretDebug(\"receive VideoServer:\" + line)\n        self.session = self.readSession(line, self.session)\n        self.nonce = self.readVariable(line, self.nonce, 'www-authenticate', 'nonce')\n        if line == 'RTSP/1.0 200 OK':\n            self.state += 1\n        elif line == 'RTSP/1.0 401 Unauthorized' and self.seq > 1:\n            self.state = self.State.TEARDOWN\n            reactor.stop()\n            error(\"ERROR 100: your Justin.tv stream key or your username is not correct.  Please see the 'readme.txt' file for help.\")\n        elif line == 'RTSP/1.0 403 Forbidden':\n            self.state = self.State.TEARDOWN\n            reactor.stop()\n            error(\"ERROR 101: received a 403 Forbidden error from the server.  Please try again.\")\n            \n    def readSession(self, line, currentvalue):\n        if line.strip().lower().startswith('session: '):\n            return line.partition(';')[0].partition(': ')[2]\n            \n    def writeLine(self, line):\n        writeSecretDebug(\"send VideoServer:\" + line)\n        self.sendLine(line)\n    \n    def writeData(self, data):\n        writeDebug('Sending data to VideoServer...')\n        writeSecretDebug(\"send VideoServer:\" + data)\n        self.transport.write(data)\n        \n    def readVariable(self, line, currentvalue, key, subkey = None):\n        if line.strip().lower().startswith(key):\n            value = line.partition('=')[2]\n            if not subkey: return value\n            for item in value.split(','):\n                if item.lower().strip().startswith(subkey.lower() + '='):\n                    return item.partition('=')[2].strip('\\\"') \n            return currentvalue\n        return currentvalue\n        \n    def sendAnnounce(self, location):\n        self.writeLine('ANNOUNCE %s RTSP/1.0' % location)\n        self.writeLine('CSeq: %d' % self.seq)\n        self.writeLine('Content-Type: application/sdp')\n        self.writeLine('User-Agent: %s' % user_agent)\n        self.writeAuthorization('ANNOUNCE')\n        body = sdp_contents\n        self.writeLine('Content-Length: ' + str(len(body) + 2))\n        self.writeLine('')\n        self.writeLine(body)\n        \n    def sendSetup(self, track, transport):\n        self.sendMethod('SETUP', track, 'Transport: %s' % transport)\n\n    def sendRecord(self, location):\n        self.sendMethod('RECORD', location)\n        print \"Connected to VideoServer successfully.\"\n\n    def sendPause(self, location):\n        self.sendMethod('PAUSE', location)\n\n    def sendTeardown(self, location):\n        self.sendMethod('TEARDOWN', location)\n        \n    def sendMethod(self, method, location, specialHeader = None):\n        self.writeLine('%s %s RTSP/1.0' % (method, location))\n        self.writeLine('CSeq: %d' % self.seq)\n        if specialHeader: self.writeLine(specialHeader)\n        self.writeLine('User-Agent: %s' % user_agent)\n        self.writeLine('Accept-Language: en-US')\n        self.writeAuthorization(method)\n        self.writeLine('')\n\n    def writeAuthorization(self, method):\n        if self.nonce:\n            m = hashlib.md5()\n            m.update(streamkey + ':' + realm + ':' + password)\n            a1 = m.hexdigest()\n            m = hashlib.md5()\n            m.update(method + ':' + file)\n            a2 = m.hexdigest()\n            m = hashlib.md5()\n            m.update(a1 + ':' + self.nonce + ':' + a2)\n            response = m.hexdigest()\n            self.writeLine('Authorization: Digest username=\"' + streamkey + '\", realm=\"' + realm + '\", nonce=\"' + self.nonce + '\", uri=\"' + file + '\", response=\"' + response + '\"')            \n\nclass RTP_Server(LineReceiver):                 # for receiving RTP packets from VLC on localhost via TCP\n    def __init__(self):\n        self.seq = 0\n        LineReceiver.setRawMode(self)\n\n    def connectionMade(self):\n        print \"Receiving video data...\"\n            \n    def dataReceived(self, data):\n        writeSecretDebug(\"receive VLC:\" + data)\n        if tool == Tool.QTBROADCASTER:\n            self.seq+=1\n            #self.writeData(data)\n            if data.find('RTSP/1.0') > -1:\n                self.writeLine('RTSP/1.0 200 OK')\n                self.writeLine('Session: 1603617977;timeout=60')\n                self.writeLine('Cseq: %d' % self.seq)\n                if data.find('SETUP') > -1:\n                    #if self.seq == 3:\n                    client_ports = data.partition('client_port=')[2].partition(';')[0].split('-')\n                    #self.writeLine('Transport: RTP/AVP/TCP;unicast;mode=record;interleaved=0-1')\n                    global rtp_ports, rtcp_ports\n                    if len(rtp_ports) == 0:\n                        server_ports = ['6970', '6971']\n                    else:\n                        s1 = rtp_ports[len(rtp_ports) - 1] + 2\n                        s2 = rtcp_ports[len(rtp_ports) - 1] + 2\n                        server_ports = [str(s1), str(s2)]\n                    writeSecretDebug(\"Parsed ports: \" + client_ports[0]  + client_ports[1])\n                    rtp_ports.append(int(client_ports[0]))\n                    rtcp_ports.append(int(client_ports[1]))\n                    self.writeLine('Transport: RTP/AVP;unicast;client_port=' + client_ports[0] + '-' + client_ports[1] + ';mode=record;source=127.0.0.1;server_port=' + server_ports[0] + '-' + server_ports[1])\n                    #else:\n                    #self.writeLine('Transport: RTP/AVP/TCP;unicast;mode=record;interleaved=2-3')\n                if data.find('OPTIONS') > -1:\n                    self.writeLine('Public: DESCRIBE, SETUP, TEARDOWN, PAUSE, OPTIONS, ANNOUNCE, RECORD, GET_PARAMETER, SET_PARAMETER')\n                if data.find('RECORD') > -1:\n                    connectToVideoServer()\n                self.writeLine('Server: VideoServer Media Server Pro 1.7.0 build11947')\n                if data.find('ANNOUNCE') > -1:\n                    if data.find('Content-Length: ') > -1:\n                        global sdp_contents\n                        sdp_contents = data.partition('Content-Length: ')[2].partition(\"\\r\\n\\r\\n\")[2]\n                        sdp_contents = sdp_contents.rpartition(\"\\r\\n\")[0]\n                        #print \"SDP CONTENTS: **\" + sdp_contents + \"**\"\n            \n                self.writeLine('')\n                self.writeLine('')\n            else:       #forward non-RTSP packets (e.g. RTP)\n                video_server_connection.writeData(data)\n        #elif tool == Tool.VLC:\n        #    video_server_connection.writeData(data)\n        #elif tool == Tool.VLC:\n            \n    def writeData(self, data): \n        writeSecretDebug(\"send VLC:\" + data)\n        self.transport.write(data)\n        \n    def writeLine(self, line):\n        writeSecretDebug(\"send VLC:\" + line)\n        self.sendLine(line)\n        \nclass VideoServerClientFactory(ClientFactory):\n    protocol = RTSP_RTP_Client\n\n    def clientConnectionFailed(self, connector, reason):\n        print reason.getErrorMessage()\n        #print \"Connection FAILED!\"\n        self.reconnectIn(60)\n\n    def clientConnectionLost(self, connector, reason):\n        print reason.getErrorMessage()\n        #print \"Connection LOST!\"\n        print \"Disconnected.\"\n        self.reconnectIn(60)\n    \n    def reconnectIn(self, seconds):\n        global should_reconnect\n        t = datetime.datetime.now()\n        should_reconnect = time.mktime(t.timetuple()) + seconds\n\nclass VLC_ServerFactory(ServerFactory):\n    protocol = RTP_Server\n\nclass RTP_UDP_Server0(DatagramProtocol):\n    def datagramReceived(self, datagram, address):\n        #print \"0 => \" + str(address[1])\n        dataReceived(0, datagram)\n        \nclass RTP_UDP_Server1(DatagramProtocol):\n    def datagramReceived(self, datagram, address):\n        #print \"1 => \" + str(address[1])\n        dataReceived(1, datagram)\n        \nclass RTP_UDP_Server2(DatagramProtocol):\n    def datagramReceived(self, datagram, address):\n        #print \"2 => \" + str(address[1])\n        dataReceived(2, datagram)\n        \nclass RTP_UDP_Server3(DatagramProtocol):\n    def datagramReceived(self, datagram, address):\n        #print \"3 => \" + str(address[1])\n        dataReceived(3, datagram)\n\ndef dataReceived(channel, data):\n    writeDebug('Receiving data from VLC...')\n    writeSecretDebug('received UDP data on channel ' + str(channel))\n    if packet_log:\n        if channel == 0:\n            global o1\n            o1 += str(ord(data[3])) + ', '\n        if channel == 2:\n            global o2\n            o2 += str(ord(data[3])) + ', '\n        print \"channel 0 seq: \" + o1\n        print \"channel 2 seq: \" + o2\n    \n    video_server_connection.writeData('$' + chr(channel) + twoByteLength(len(data)) + data)\n	\n    global live_sent, should_reconnect\n    t = datetime.datetime.now()\n    tt = time.mktime(t.timetuple())\n    if tt > live_sent:\n        live_sent = tt + 60\n        feedback(\"live\", \"\")\n        #print \"SENT LIVE\"\n    if should_reconnect != 0 and tt > should_reconnect:\n        should_reconnect = 0\n        #print \"Attempting to reconnect...\"\n        \ndef twoByteLength(dataLength):\n    v = int(math.floor(dataLength / 256))\n    return chr(v) + chr(dataLength - 256 * v)\n\ndef printHelp():\n    print \"-----------------------------------------------------------------------\"\n    print \"  \" + user_agent + \" Help - Vladislav Yazhbin <vlad@justin.tv>\"\n    print \"-----------------------------------------------------------------------\"\n    print \"  Please use the following command line format:\\n\"\n    print \"      jtvlc login stream_key sdp_file [-d]\\n\"\n    print \"  For example:\\n\"\n    print \"      jtvlc lin_user live_gk423_c3r4 file:///home/justin/Desktop/vlc.sdp\"\n    print \"      jtvlc mac_user live_l01d_dlj1 /Users/Justin/Desktop/vlc.sdp\"\n    print \"      jtvlc.exe win_user live_pj42_8fkh2 c:/users/justin/vlc.sdp\\n\"\n    print \"  -d is an optional parameter that enables debug logging to the console\\n\"\n    print \"  Please see 'readme.txt' for more information.\\n\"\n    checkVersion()\n    \ndef main(argv):\n    #feedback(\"start\", \"Started the app\")\n    if len(argv) < 4 or (len(argv) > 1 and argv[1]=='--help'):\n        printHelp() \n        return\n\n    print user_agent + \" By Vladislav Yazhbin <vlad@justin.tv>\"\n    checkVersion()\n    \n    global username, streamkey, sdp_location, sdp_contents, debug_log, file, uri\n    username = argv[1]\n    streamkey = argv[2]\n    sdp_location = argv[3].replace('file://', '')\n    file = '/app/live_user_' + username + '.sdp'\n    uri = domain + file\n    \n    if len(argv) > 4 and argv[4]==\"-d\":\n        debug_log = True\n    \n    if tool==Tool.VLC:\n        try:\n            f = open(sdp_location, 'r')\n            try:\n                sdp_contents = f.read().replace('\\n', '\\r\\n').strip()\n            finally:\n                f.close()\n        except IOError:\n            error(\"ERROR 102:  Could not find or access file '%s'.\\nSuggestions:  Have you started VLC yet?  Is it broadcasting?  Does VLC successfully create the file?  See 'readme.txt' for more information.\\nAborting...\" % sdp_location)\n            return\n        if sdp_contents == '' or sdp_contents == '(null)':\n            error(\"ERROR 103: The sdp file is empty.  Please check your VLC streaming settings.\")\n            return\n        global rtp_ports, rtcp_ports\n        if sdp_contents.find('m=audio') > -1:\n            sdp_contents = sdp_contents.replace('m=video', 'a=control:trackid=1\\r\\nm=video') + '\\r\\na=control:trackid=2'\n            rtp_ports = [int(sdp_contents.partition('m=audio ')[2].partition(' RTP')[0]), int(sdp_contents.partition('m=video ')[2].partition(' RTP')[0])]\n            rtcp_ports = [rtp_ports[0] + 1, rtp_ports[1] + 1]\n        else:\n            sdp_contents += '\\r\\na=control:trackid=1'\n            rtp_ports = [int(sdp_contents.partition('m=video ')[2].partition(' RTP')[0])]\n            rtcp_ports = [rtp_ports[0] + 1]            \n        connectToVideoServer()\n    else:\n        sf = VLC_ServerFactory()\n        reactor.listenTCP(1234, sf)\n        #startListeningForRDP_UDP()\n    \n    reactor.run()\n\ndef connect(user_name, stream_key, sdp_path):\n    \"\"\" Modified method for starting JTVLC from within Python. \"\"\"\n\n    global username, streamkey, sdp_location, sdp_contents, debug_log, file, uri\n\n    username = user_name\n    streamkey = stream_key\n    sdp_location = sdp_path.replace('file://', '')\n\n    file = '/app/live_user_' + username + '.sdp'\n    uri = domain + file\n\n    if tool==Tool.VLC:\n        try:\n            f = open(sdp_location, 'r')\n            try:\n                sdp_contents = f.read().replace('\\n', '\\r\\n').strip()\n            finally:\n                f.close()\n        except IOError:\n            error(\"No SDP file! %s\" % sdp_location)\n            return\n        if sdp_contents == '' or sdp_contents == '(null)':\n            error(\"SDP file empty!\")\n            return\n        global rtp_ports, rtcp_ports\n        if sdp_contents.find('m=audio') > -1:\n            sdp_contents = sdp_contents.replace('m=video', 'a=control:trackid=1\\r\\nm=video') + '\\r\\na=control:trackid=2'\n            rtp_ports = [int(sdp_contents.partition('m=audio ')[2].partition(' RTP')[0]), int(sdp_contents.partition('m=video ')[2].partition(' RTP')[0])]\n            rtcp_ports = [rtp_ports[0] + 1, rtp_ports[1] + 1]\n        else:\n            sdp_contents += '\\r\\na=control:trackid=1'\n            rtp_ports = [int(sdp_contents.partition('m=video ')[2].partition(' RTP')[0])]\n            rtcp_ports = [rtp_ports[0] + 1]            \n        connectToVideoServer()\n    else:\n        sf = VLC_ServerFactory()\n        reactor.listenTCP(1234, sf)\n        #startListeningForRDP_UDP()\n    \n    reactor.run()\n\ndef startListeningForRDP_UDP():\n    global rtp_ports, rtcp_ports\n    reactor.listenUDP(rtp_ports[0], RTP_UDP_Server0())\n    reactor.listenUDP(rtcp_ports[0], RTP_UDP_Server1())\n    if len(rtp_ports) > 1: reactor.listenUDP(rtp_ports[1], RTP_UDP_Server2())\n    if len(rtcp_ports) > 1: reactor.listenUDP(rtcp_ports[1], RTP_UDP_Server3())\n\ndef writeSecretDebug(msg, alternate=None):\n    writeDebug(msg, True, alternate)\n    \ndef writeDebug(msg, secret=False, alternate=None):\n    if not debug_log or (not packet_log and secret):\n        if alternate:\n            print alternate\n        return\n    print msg\n\ndef connectToVideoServer():\n    cf = VideoServerClientFactory()\n    reactor.connectTCP(ip, port, cf)\n\ndef checkVersion():\n    f = urllib.urlopen(\"http://vladdata.heroku.com/api/info/jtvlc.xml\")\n    contents = f.read()\n    print \"-----------------------------------------------------------------------\"\n    if contents.find(\"<version>\") != -1:\n        v = contents.partition(\"<version>\")[2].partition(\"</version>\")[0]\n        if v == version:\n            print \"  You are using the latest version.\"\n        else:\n            print \"***********************************************************************\"\n            print\n            print \"  New version of Jtvlc is available: \" + v + \"!\"\n            print \"  Please visit the community wiki to download it:\"\n            print \"  \" + website\n            print \"-----------------------------------------------------------------------\"\n            return\n    print \"  Jtvlc homepage:  \" + website\n    print \"-----------------------------------------------------------------------\"\n\ndef error(message):\n    print \"  \" + message\n    print \"-----------------------------------------------------------------------\"\n    feedback('error', message)\n\ndef feedback(type, message):\n    u = \"http://vladdata.heroku.com/api/event/jtvlc.xml?\" + urllib.urlencode({'type': type, 'message': message, 'channel': username, 'key': api_key})\n    if type=='error':\n        urllib.urlopen(u).read()\n    else:\n        getPage(u).addCallback(parseResults)\n\ndef parseResults(contents):\n    pass #print contents\n    \nif __name__ == '__main__':\n    main(sys.argv)\n",
+			"file": "jtvlc/jtvlc.py",
+			"file_size": 18248,
+			"file_write_time": 1343802843000000,
+			"settings":
+			{
+				"buffer_size": 18248,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/scrapindicator.py",
+			"settings":
+			{
+				"buffer_size": 3616,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/stream_window.py",
+			"settings":
+			{
+				"buffer_size": 1956,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -52,6 +127,15 @@
 	},
 	"file_history":
 	[
+		"/home/andrew/Development/Projects/scrapstream/src/scrapindicator.py",
+		"/home/andrew/Development/Projects/scrapstream/jtvlc/config.py",
+		"/home/andrew/Development/Projects/scrapstream/jtvlc/jtvlc.py",
+		"/home/andrew/Development/Projects/scrapstream/stream_window.py",
+		"/home/andrew/Development/Projects/scrapstream/main.py",
+		"/home/andrew/Development/Projects/scrapstream/jtvlc_manager.py",
+		"/home/andrew/Development/Projects/scrapstream/vlc_manager.py",
+		"/home/andrew/Development/Projects/scrapstream/jtvlc/__init__.py",
+		"/home/andrew/Development/Projects/scrapstream/scrapindicator.py",
 		"/home/andrew/Development/Projects/Morlunk-Web/pages/static/css/stylesheet.css",
 		"/home/andrew/Development/Projects/Morlunk-Web/templates/base.html",
 		"/home/andrew/Development/Projects/Morlunk-Web/minecraft/views.py",
@@ -109,6 +193,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"username",
 			"insuffic"
 		],
 		"highlight": true,
@@ -127,14 +212,232 @@
 	"groups":
 	[
 		{
+			"selected": 3,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "src/main.py",
+					"settings":
+					{
+						"buffer_size": 849,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								62,
+								62
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/jtvlc_manager.py",
+					"settings":
+					{
+						"buffer_size": 1602,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/vlc_manager.py",
+					"settings":
+					{
+						"buffer_size": 3503,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2581,
+								2581
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 104.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/aboutwindow.py",
+					"settings":
+					{
+						"buffer_size": 970,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2,
+								2
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "src/streamsettings.py",
+					"settings":
+					{
+						"buffer_size": 814,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								430,
+								430
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "jtvlc/jtvlc.py",
+					"settings":
+					{
+						"buffer_size": 18248,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								654,
+								654
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/scrapindicator.py",
+					"settings":
+					{
+						"buffer_size": 3616,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3173,
+								3173
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 765.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/stream_window.py",
+					"settings":
+					{
+						"buffer_size": 1956,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								961,
+								961
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 204.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 0.0
+		"height": 34.0
 	},
 	"input":
 	{

@@ -18,6 +18,7 @@ from gi.repository import Gtk
 import vlc_manager
 import jtvlc_manager
 from threading import Timer
+import streammonitor
 
 class StreamWindow(object):
 
@@ -33,20 +34,99 @@ class StreamWindow(object):
 		self.dialog = builder.get_object("dialog1")
 		self.username_entry = builder.get_object("username_entry")
 		self.stream_key_entry = builder.get_object("stream_key_entry")
+
+		# Icons
+		self.vlc_image = builder.get_object("vlc_image")
+		self.jtvlc_image = builder.get_object("jtvlc_image")
+		self.stream_image = builder.get_object("stream_image")
+
+		# Status
+		self.vlc_status = builder.get_object("vlc_status")
+		self.jtvlc_status = builder.get_object("jtvlc_status")
+		self.stream_status = builder.get_object("stream_status")
+
+		# Progress
+		self.stream_progress = builder.get_object("stream_progress")
+
 		builder.connect_signals(handlers)
+
+		# Monitor for vlc and jtvlc process changes
+		monitor = streammonitor.get_stream_monitor()
+		monitor.subscribe(self.monitor_update)
+
+		self.streaming = False # Whether the user is making an attempt to stream
 
 	def show(self):
 		self.dialog.show_all()
 
-	def stream(self, button, userdata=None):
-		print "Starting streaming..."
-		vlc_manager.start_vlc()
+	def monitor_update(self, monitor):
+		progress = float(0)
+		vlc_image = ""
+		vlc_status = ""
 
-		username = self.username_entry.get_text()
-		stream_key = self.stream_key_entry.get_text()
-		jtvlc_manager.set_credentials(username, stream_key)
+		if monitor.vlc_running:
+			vlc_image = "xml/res/vlc-active.png"
+			vlc_status = "Online"
+			progress += 1
+		else:
+			vlc_image = "xml/res/vlc-inactive.png"
+			vlc_status = "Offline"
+		
+		self.vlc_status.set_label(vlc_status)
+		self.vlc_image.set_from_file(vlc_image)
+
+		jtvlc_image = ""
+		jtvlc_status = ""
+
+		if monitor.jtvlc_running:
+			jtvlc_image = "xml/res/jtv-active.png"
+			jtvlc_status = "Online"
+			progress += 1
+		else:
+			jtvlc_image = "xml/res/jtv-inactive.png"
+			jtvlc_status = "Offline"
+		
+		self.jtvlc_status.set_label(jtvlc_status)
+		self.jtvlc_image.set_from_file(jtvlc_image)
+
+		stream_image = ""
+		stream_status = ""
+		if monitor.vlc_running and monitor.jtvlc_running:
+			stream_image = "xml/res/stream-active.png"
+			stream_status = "Online"
+			progress += 1
+		else:
+			stream_image = "xml/res/stream-inactive.png"
+			stream_status = "Offline"
+
+		self.stream_status.set_label(stream_status)
+		self.stream_image.set_from_file(stream_image)
+
+		self.stream_progress.set_fraction(progress/float(3)) # 3 stages
+
+		if monitor.vlc_running and monitor.jtvlc_running is False:
+			# Start JTVLC if VLC is running
+			print "Starting JTVLC, VLC initialized..."
+			username = self.username_entry.get_text()
+			stream_key = self.stream_key_entry.get_text()
+			jtvlc_manager.run_jtvlc(username, stream_key)
+
+	def stream(self, button, userdata=None):
+		if self.streaming is False:
+			vlc_manager.start_vlc()
+
+			username = self.username_entry.get_text()
+			stream_key = self.stream_key_entry.get_text()
+			#jtvlc_manager.set_credentials(username, stream_key)
+
+			button.set_label("Stop")
+			self.streaming = True
+		else:
+			vlc_manager.stop_vlc()
+			jtvlc_manager.stop_jtvlc()
+			button.set_label("Go Live!")
+			self.streaming = False
 
 	def quit(self, button, userdata=None):
-		vlc_manager.stop_vlc()
 		self.dialog.hide()
 		return True # Prevents the window from being destroyed. We only want to hide.

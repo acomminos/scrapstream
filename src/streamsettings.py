@@ -14,15 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk, GObject
-from scrapindicator import ScrapIndicator
-import streammonitor
+import json
 
-if __name__ == "__main__":
-    GObject.threads_init() # Necessary to use multithreading
-
-    monitor = streammonitor.get_stream_monitor()
-    monitor.start()
-
-    scrapindicator = ScrapIndicator()
-    Gtk.main()
+class StreamSettings(object):
+	capture_width = 0
+	capture_height = 0
+	capture_scale = 1
+	frame_rate = 30

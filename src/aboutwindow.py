@@ -14,15 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk, GObject
-from scrapindicator import ScrapIndicator
-import streammonitor
+from gi.repository import Gtk
 
-if __name__ == "__main__":
-    GObject.threads_init() # Necessary to use multithreading
+class AboutWindow(object):
 
-    monitor = streammonitor.get_stream_monitor()
-    monitor.start()
+	def __init__(self):
+		builder = Gtk.Builder()
+		builder.add_from_file("xml/stream_about.glade")
+		self.dialog = builder.get_object("aboutdialog1")
+		self.dialog.show_all()
 
-    scrapindicator = ScrapIndicator()
-    Gtk.main()
+	def show(self):
+		self.dialog.show_all()

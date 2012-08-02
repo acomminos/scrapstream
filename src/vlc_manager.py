@@ -18,19 +18,22 @@
 # vlc screen:// -vvv input_stream --sout='#duplicate{dst=display, dst="transcode{venc=x264{keyint=60,idrint=2},scale=0.5,vcodec=h264,vb=300,acodec=mp4a,ab=32,channels=2,samplerate=44100}:rtp{dst=127.0.0.1,port=1234,sdp=file:///home/andrew/vlc.sdp}"}' --screen-width 1920 --screen-height 1080 --screen-fps 25
 
 import threading
+import time
 import subprocess
 import getpass
 import os
 
 # Constants
 sdp_name = ".scrapstream.sdp"
-sdp_path = "file:///home/%(username)s/%(sdp_name)s" % {'username': getpass.getuser(), 'sdp_name': sdp_name}
+sdp_path = "/home/%(username)s/%(sdp_name)s" % {'username': getpass.getuser(), 'sdp_name': sdp_name}
 
 # Default streaming properties
 capture_width = 1920
 capture_height = 1080
-capture_scale = 0.5
-frame_rate = 15
+render_width = 1920
+render_height = 1080
+capture_scale = 1
+frame_rate = 30
 vlc_process = None
 
 def start_vlc():
@@ -39,7 +42,8 @@ def start_vlc():
     vlc_args = ["cvlc",
                 "screen://",
                 "input_stream",
-                "--sout=#transcode{venc=x264{keyint=60,idrint=2},vcodec=h264,vb=300,scale=%(scale)f}:rtp{dst=127.0.0.1,port=1234,sdp=%(sdp_path)s}" % {'scale': capture_scale, 'sdp_path': sdp_path},
+                "--sout=#transcode{venc=x264{keyint=60,idrint=2},vcodec=h264,width=%(width)d,height=%(height)d,vb=300}:rtp{dst=127.0.0.1,port=1234,sdp=file://%(sdp_path)s}" 
+                % {'width': render_width, 'height': render_height, 'sdp_path': sdp_path},
                 "--screen-fps", str(frame_rate),
                 "--screen-width", str(capture_width),
                 "--screen-height", str(capture_height)]
