@@ -62,4 +62,4 @@ def is_running():
     if jtvlc_process is None:
         return False
     else:
-        return os.path.exists("/proc/%d" % jtvlc_process.pid)
+        return jtvlc_process.poll() != None
