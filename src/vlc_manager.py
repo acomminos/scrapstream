@@ -28,17 +28,19 @@ sdp_name = ".scrapstream.sdp"
 sdp_path = "/home/%(username)s/%(sdp_name)s" % {'username': getpass.getuser(), 'sdp_name': sdp_name}
 
 # Default streaming properties
-capture_width = 1920
-capture_height = 1080
-render_width = 1920
-render_height = 1080
+capture_width = 1440
+capture_height = 900
+render_width = 1440
+render_height = 900
 capture_scale = 1
-frame_rate = 30
+frame_rate = 20
+
+vlc_started = False
 vlc_process = None
 
 def start_vlc():
     """ Creates a new VLC instance with the properties. """
-    global vlc_process
+    global vlc_process, vlc_started
     vlc_args = ["cvlc",
                 "screen://",
                 "input_stream",
@@ -48,14 +50,30 @@ def start_vlc():
                 "--screen-width", str(capture_width),
                 "--screen-height", str(capture_height)]
     vlc_process = subprocess.Popen(vlc_args)
+    vlc_started = True
     print "Created VLC with PID %d!" % vlc_process.pid
 
 def stop_vlc():
-    global vlc_process
-    if vlc_process is not None:
+    global vlc_process, vlc_started
+    if vlc_process is not None and vlc_process.poll() is None:
         print "Killing VLC with PID %d..." % vlc_process.pid
+        vlc_started = False
         vlc_process.terminate()
         vlc_process.wait()
         vlc_process = None
     else:
         print "Can't kill VLC- it isn't running!"
+
+def is_process_running():
+    global vlc_process
+    if vlc_process is not None:
+        return vlc_process.poll() is None
+    else:
+        return False
+
+def get_output():
+    global vlc_process
+    if vlc_process is not None:
+        return vlc_process.communicate()[0]
+    else:
+        return "Not running!"

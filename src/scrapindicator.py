@@ -103,7 +103,8 @@ class ScrapIndicator(object):
         about_window = AboutWindow()
         about_window.show()
 
-    def monitor_update(self, monitor):
+    def monitor_update(self):
+        monitor = streammonitor.get_stream_monitor()
         if monitor.vlc_running and monitor.jtvlc_running:
             self.set_stream_state(ScrapstreamState.STREAMING)
         elif monitor.vlc_running:

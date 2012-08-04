@@ -16,12 +16,20 @@
 
 from gi.repository import Gtk
 
-class AboutWindow(object):
+class ErrorWindow(object):
 
-	def __init__(self):
+	def __init__(self, process_name="UNKNOWN", output=None):
 		builder = Gtk.Builder()
-		builder.add_from_file("xml/stream_about.glade")
-		self.dialog = builder.get_object("aboutdialog1")
+		builder.add_from_file("xml/stream_error.glade")
+		self.dialog = builder.get_object("messagedialog1")
+		self.dialog.set_markup("A crucial part of Scrapstream, %s, has quit unexpectedly." % process_name)
+		self.error_text = builder.get_object("text_buffer")
+
+		if output is not None:
+			self.set_output(output)
 
 	def show(self):
 		self.dialog.show_all()
+
+	def set_output(self, output):
+		self.error_text.set_text(output)

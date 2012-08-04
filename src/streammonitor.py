@@ -14,11 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from gi.repository import GLib
 import threading
 import time
 import vlc_manager
 import jtvlc_manager
-from singleton import Singleton
 
 stream_monitor = None
 
@@ -52,14 +52,14 @@ class StreamMonitor(threading.Thread):
             self.check_running()
 
             for callback in self.callbacks:
-                callback(self)
+                GLib.idle_add(callback) # Execute callback on main thread
 
             time.sleep(self.period)
 
     def check_running(self):
         self.vlc_running = self.is_vlc_streaming()
         self.jtvlc_running = self.is_jtvlc_streaming()
-        print "VLC streaming: %r, JTVLC running: %r" % (self.vlc_running, self.jtvlc_running)
+        print "VLC streaming: %r\nJTVLC running: %r\n-------------------" % (self.vlc_running, self.jtvlc_running)
 
     def is_vlc_streaming(self):
         """Returns whether or not VLC is streaming anything to scrapstream's SDP file."""
@@ -75,4 +75,4 @@ class StreamMonitor(threading.Thread):
             return False
 
     def is_jtvlc_streaming(self):
-        return jtvlc_manager.is_running()
+        return jtvlc_manager.is_process_running()
