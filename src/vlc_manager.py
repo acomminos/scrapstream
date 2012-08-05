@@ -17,63 +17,17 @@
 # Example VLC command:
 # vlc screen:// -vvv input_stream --sout='#duplicate{dst=display, dst="transcode{venc=x264{keyint=60,idrint=2},scale=0.5,vcodec=h264,vb=300,acodec=mp4a,ab=32,channels=2,samplerate=44100}:rtp{dst=127.0.0.1,port=1234,sdp=file:///home/andrew/vlc.sdp}"}' --screen-width 1920 --screen-height 1080 --screen-fps 25
 
-import threading
-import time
-import subprocess
-import getpass
-import os
+from process_manager import ProcessManager
+from stream_settings import StreamSettings
 
-# Constants
-sdp_name = ".scrapstream.sdp"
-sdp_path = "/home/%(username)s/%(sdp_name)s" % {'username': getpass.getuser(), 'sdp_name': sdp_name}
+class VLCManager(ProcessManager):
 
-# Default streaming properties
-capture_width = 1440
-capture_height = 900
-render_width = 1440
-render_height = 900
-capture_scale = 1
-frame_rate = 20
-
-vlc_started = False
-vlc_process = None
-
-def start_vlc():
-    """ Creates a new VLC instance with the properties. """
-    global vlc_process, vlc_started
-    vlc_args = ["cvlc",
+    def get_command(self):
+        return  ["cvlc",
                 "screen://",
                 "input_stream",
                 "--sout=#transcode{venc=x264{keyint=60,idrint=2},vcodec=h264,width=%(width)d,height=%(height)d,vb=300}:rtp{dst=127.0.0.1,port=1234,sdp=file://%(sdp_path)s}" 
-                % {'width': render_width, 'height': render_height, 'sdp_path': sdp_path},
-                "--screen-fps", str(frame_rate),
-                "--screen-width", str(capture_width),
-                "--screen-height", str(capture_height)]
-    vlc_process = subprocess.Popen(vlc_args)
-    vlc_started = True
-    print "Created VLC with PID %d!" % vlc_process.pid
-
-def stop_vlc():
-    global vlc_process, vlc_started
-    if vlc_process is not None and vlc_process.poll() is None:
-        print "Killing VLC with PID %d..." % vlc_process.pid
-        vlc_started = False
-        vlc_process.terminate()
-        vlc_process.wait()
-        vlc_process = None
-    else:
-        print "Can't kill VLC- it isn't running!"
-
-def is_process_running():
-    global vlc_process
-    if vlc_process is not None:
-        return vlc_process.poll() is None
-    else:
-        return False
-
-def get_output():
-    global vlc_process
-    if vlc_process is not None:
-        return vlc_process.communicate()[0]
-    else:
-        return "Not running!"
+                % {'width': StreamSettings.output_width, 'height': StreamSettings.output_height, 'sdp_path': StreamSettings.sdp_path},
+                "--screen-fps", str(StreamSettings.frame_rate),
+                "--screen-width", str(StreamSettings.capture_width),
+                "--screen-height", str(StreamSettings.capture_height)]

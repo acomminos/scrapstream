@@ -16,13 +16,11 @@
 
 from gi.repository import Gtk, GObject
 from scrapindicator import ScrapIndicator
-import streammonitor
 
-if __name__ == "__main__":
-    GObject.threads_init() # Necessary to use multithreading
-
-    monitor = streammonitor.get_stream_monitor()
-    monitor.start()
-
+def main():
+	GObject.threads_init() # Necessary to use multithreading
     scrapindicator = ScrapIndicator()
     Gtk.main()
+
+if __name__ == "__main__":
+	main()

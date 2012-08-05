@@ -22,23 +22,31 @@ import jtvlc_manager
 
 stream_monitor = None
 
-def get_stream_monitor():
-    global stream_monitor
-    if stream_monitor is None:
-        stream_monitor = StreamMonitor()
-    return stream_monitor
+def get_stream_manager():
+    global stream_manager
+    if stream_manager is None:
+        stream_manager = StreamManager()
+    return stream_manager
 
 class StreamMonitor(threading.Thread):
 
     def __init__(self):
         super(StreamMonitor, self).__init__()
-        self.thread_running = True
+        self.thread_running = False
         self.vlc_running = False
         self.jtvlc_running = False
         self.period = 2
         self.callbacks = []
 
+    def start(self):
+        # Start required processes
+        self.thread_running = True
+        # Start monitoring
+        self.start()
+
     def stop(self):
+        vlc_manager.stop_vlc()
+        jtvlc_manager.stop_jtvlc()
         self.thread_running = False
 
     def subscribe(self, callback):
@@ -76,3 +84,11 @@ class StreamMonitor(threading.Thread):
 
     def is_jtvlc_streaming(self):
         return jtvlc_manager.is_process_running()
+
+
+class StreamManager(object):
+
+    def __init__(self):
+        self.stream_monitor = StreamMonitor()
+
+    def start_streaming(self):

@@ -47,6 +47,10 @@ class StreamWindow(object):
 		self.jtvlc_status = builder.get_object("jtvlc_status")
 		self.stream_status = builder.get_object("stream_status")
 
+		self.vlc_running = False
+		self.jtvlc_running = False
+		self.stream_running = False
+
 		# Progress
 		self.stream_progress = builder.get_object("stream_progress")
 
@@ -81,16 +85,18 @@ class StreamWindow(object):
 		jtvlc_image = ""
 		jtvlc_status = ""
 
-		if monitor.jtvlc_running:
-			jtvlc_image = "xml/res/jtv-active.png"
-			jtvlc_status = "Online"
-			progress += 1
-		else:
-			jtvlc_image = "xml/res/jtv-inactive.png"
-			jtvlc_status = "Offline"
-		
-		self.jtvlc_status.set_label(jtvlc_status)
-		self.jtvlc_image.set_from_file(jtvlc_image)
+		if monitor.jtvlc_running != self.jtvlc_running:
+			if monitor.jtvlc_running:
+				jtvlc_image = "xml/res/jtv-active.png"
+				jtvlc_status = "Online"
+				progress += 1
+			else:
+				jtvlc_image = "xml/res/jtv-inactive.png"
+				jtvlc_status = "Offline"
+			
+			self.jtvlc_status.set_label(jtvlc_status)
+			self.jtvlc_image.set_from_file(jtvlc_image)
+			self.jtvlc_running = monitor.jtvlc_running
 
 		stream_image = ""
 		stream_status = ""

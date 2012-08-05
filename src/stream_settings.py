@@ -15,9 +15,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import os
+import getpass
 
 class StreamSettings(object):
-	capture_width = 0
-	capture_height = 0
-	capture_scale = 1
+	# Capture settings
+	capture_width = 1440
+	capture_height = 900
+	output_width = 1440
+	output_height = 900
 	frame_rate = 30
+
+	# Credentials
+	stream_username = ""
+	stream_key = ""
+
+	# SDP
+	sdp_name = ".scrapstream.sdp"
+	sdp_path = "/home/%(username)s/%(sdp_name)s" % {'username': getpass.getuser(), 'sdp_name': sdp_name}
