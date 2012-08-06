@@ -17,6 +17,7 @@
 from gi.repository import GLib
 import threading
 import time
+from error_window import ErrorWindow
 from stream_settings import StreamSettings
 from jtvlc_manager import JTVLCManager
 from vlc_manager import VLCManager
@@ -27,7 +28,7 @@ class StreamMonitor(threading.Thread):
         super(StreamMonitor, self).__init__()
         self.thread_running = True
         self.monitoring = False
-        self.period = 2
+        self.period = 1
         self.manager = manager
 
         # Start monitoring
@@ -86,7 +87,7 @@ class StreamManager(object):
                 self.vlc_manager.start()
             else:
                 # Throw error if VLC has started and is not running
-                #self.error()
+                self.error(self.vlc_manager)
                 self.stop_streaming()
                 pass
 
@@ -97,12 +98,18 @@ class StreamManager(object):
                 self.jtvlc_manager.start()
             else:
                 # Throw error if JTVLC has started and is not running
-                #self.error()
+                self.error(self.jtvlc_manager)
                 self.stop_streaming()
                 pass
 
         for callback in self.callbacks:
             callback(self)
+
+    def error(self, process_manager):
+        """ Creates an error window informing the user that the passed process has crashed. """
+        error_window = ErrorWindow(process_manager.get_name())
+        error_window.set_output(process_manager.get_output())
+        error_window.show()
 
     def stop_streaming(self):
         self.streaming = False

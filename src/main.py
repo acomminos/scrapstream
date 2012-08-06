@@ -18,6 +18,8 @@ from gi.repository import Gtk, GObject
 from scrap_indicator import ScrapIndicator
 
 def main():
+	StreamSettings.load() # Load settings
+
 	GObject.threads_init() # Necessary to use multithreading
 	scrapindicator = ScrapIndicator()
 	Gtk.main()

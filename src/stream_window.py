@@ -25,6 +25,7 @@ class StreamWindow(object):
         handlers = {
             "onLiveActivate": self.stream,
             "onCancelActivate": self.quit,
+            "rememberToggle": self.remember_me,
             "delete-event": self.quit
         }
 
@@ -128,13 +129,19 @@ class StreamWindow(object):
     def start_stream(self):
         StreamSettings.stream_username = self.username_entry.get_text()
         StreamSettings.stream_key = self.stream_key_entry.get_text()
-        
+        StreamSettings.save()
+
         StreamManager.get_stream_manager().start_streaming()
         self.stream_button.set_label("Stop")
 
     def stop_stream(self):
         StreamManager.get_stream_manager().stop_streaming()
         self.stream_button.set_label("Go Live!")
+
+    def remember_me(self, checkbox, userdata=None):
+        """ Called when the 'Remember Me' checkbox is pressed. """
+        StreamSettings.remember_me = checkbox.get_active()
+        StreamSettings.save()
 
     def quit(self, button, userdata=None):
         self.dialog.hide()

@@ -14,22 +14,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
+from ConfigParser import ConfigParser
 import os
-import getpass
 
 class StreamSettings(object):
+
+	config_path = "%s/.scrapstream-config" % os.getenv("HOME")
+
 	# Capture settings
-	capture_width = 1440
-	capture_height = 900
-	output_width = 1440
-	output_height = 900
+	capture_width = 0
+	capture_height = 0
+	output_width = 0
+	output_height = 0
 	frame_rate = 30
 
 	# Credentials
 	stream_username = ""
 	stream_key = ""
+	remember_me = False
 
 	# SDP
 	sdp_name = ".scrapstream.sdp"
-	sdp_path = "/home/%(username)s/%(sdp_name)s" % {'username': getpass.getuser(), 'sdp_name': sdp_name}
+	sdp_path = "%(home)s/%(sdp_name)s" % {'home': os.getenv("HOME"), 'sdp_name': sdp_name}
+
+	@staticmethod
+	def load():
+		""" Loads the stream settings file. If not present, creates one. """
+		config = ConfigParser()
+		config.read(StreamSettings.config_path)
+
+		StreamSettings.stream_username = []
+
+	@staticmethod
+	def save():
+		with open(StreamSettings.config_path, 'w') as configfile:
+			config.write(configfile)

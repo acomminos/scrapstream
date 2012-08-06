@@ -31,3 +31,6 @@ class VLCManager(ProcessManager):
                 "--screen-fps", str(StreamSettings.frame_rate),
                 "--screen-width", str(StreamSettings.capture_width),
                 "--screen-height", str(StreamSettings.capture_height)]
+
+    def get_name(self):
+    	return "VLC"

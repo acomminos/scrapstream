@@ -34,7 +34,7 @@ class ProcessManager(object):
 
     def start(self):
         self.process_started = True
-        self.process_instance = subprocess.Popen(self.get_command())
+        self.process_instance = subprocess.Popen(self.get_command(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def stop(self, wait=True):
         if self.process_instance is not None and self.is_running():
@@ -53,6 +53,19 @@ class ProcessManager(object):
             return False
         else:
             return self.process_instance.poll() is None
+
+    def get_output(self):
+        """ Returns STDOUT of the process. None if process has not instantiated. """
+        if self.process_instance is not None:
+            return self.process_instance.stdout.read()[:-1]
+
+    def get_error(self):
+        """ Returns STDERR of the process. None if process has not instantiated. """
+        if self.process_instance is not None:
+            return self.process_instance.stderr.read()[:-1]
+
+    def get_name(self):
+        return "UNKNOWN"
 
     @abc.abstractmethod
     def get_command(self):

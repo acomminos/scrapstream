@@ -30,3 +30,6 @@ class JTVLCManager(ProcessManager):
                       StreamSettings.stream_key,
                       StreamSettings.sdp_path]
         return jtvlc_args
+
+    def get_name(self):
+        return "JTVLC"
