@@ -21,14 +21,12 @@ from process_manager import ProcessManager
 from stream_settings import StreamSettings
 import os
 
-class JTVLCManager(ProcessManager)
+class JTVLCManager(ProcessManager):
 
-    def __init__(self):
-        super().__init__()
-
-def get_command(self):
-    jtvlc_path = os.path.join(os.getcwd(), "jtvlc-lin-0.41", "jtvlc")
-    jtvlc_args = [jtvlc_path,
-                  StreamSettings.stream_username,
-                  StreamSettings.stream_key,
-                  StreamSettings.sdp_path]
+    def get_command(self):
+        jtvlc_path = os.path.join(os.getcwd(), "jtvlc-lin-0.41", "jtvlc")
+        jtvlc_args = [jtvlc_path,
+                      StreamSettings.stream_username,
+                      StreamSettings.stream_key,
+                      StreamSettings.sdp_path]
+        return jtvlc_args

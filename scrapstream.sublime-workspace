@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"jtvlc_",
+				"jtvlc_manager"
+			],
+			[
 				"Scraps",
 				"ScrapstreamState"
 			],
@@ -36,42 +40,10 @@
 	"buffers":
 	[
 		{
-			"file": "src/process_manager.py",
-			"settings":
-			{
-				"buffer_size": 1935,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/stream_settings.py",
-			"settings":
-			{
-				"buffer_size": 1083,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/jtvlc_manager.py",
-			"settings":
-			{
-				"buffer_size": 1250,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/vlc_manager.py",
-			"settings":
-			{
-				"buffer_size": 1775,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "src/stream_manager.py",
 			"settings":
 			{
-				"buffer_size": 2801,
+				"buffer_size": 2874,
 				"line_ending": "Unix"
 			}
 		}
@@ -100,22 +72,18 @@
 	},
 	"file_history":
 	[
-		"/home/morlunk/Development/scrapstream/src/stream_manager.py",
-		"/home/morlunk/Development/scrapstream/src/stream_window.py",
-		"/home/morlunk/Development/scrapstream/src/jtvlc_manager.py",
-		"/home/morlunk/Development/scrapstream/src/main.py",
-		"/home/morlunk/Development/scrapstream/src/scrap_indicator.py",
-		"/home/morlunk/Development/scrapstream/src/error_window.py",
-		"/home/morlunk/Development/scrapstream/src/vlc_manager.py",
-		"/home/morlunk/Development/scrapstream/src/about_window.py",
-		"/home/morlunk/Development/scrapstream/src/jtvlc-lin-0.41/readme.txt",
-		"/home/morlunk/Development/scrapstream/src/scrapindicator.py",
-		"/home/morlunk/Development/scrapstream/jtvlc/jtvlc.py",
-		"/home/morlunk/Development/scrapstream/src/streamsettings.py",
-		"/home/morlunk/Development/scrapstream/src/aboutwindow.py",
+		"/home/andrew/Development/Projects/scrapstream/src/process_manager.py",
+		"/home/andrew/Development/Projects/scrapstream/src/jtvlc_manager.py",
+		"/home/andrew/Development/Projects/scrapstream/src/vlc_manager.py",
+		"/home/andrew/Development/Projects/scrapstream/src/streamsettings.py",
+		"/home/andrew/Development/Projects/scrapstream/src/streammonitor.py",
+		"/home/andrew/Development/Projects/scrapstream/src/main.py",
+		"/home/andrew/Development/Projects/scrapstream/src/stream_window.py",
 		"/home/andrew/Development/Projects/scrapstream/src/scrapindicator.py",
-		"/home/andrew/Development/Projects/scrapstream/jtvlc/config.py",
 		"/home/andrew/Development/Projects/scrapstream/jtvlc/jtvlc.py",
+		"/home/andrew/Development/Projects/scrapstream/src/singleton.py",
+		"/home/andrew/Development/Projects/scrapstream/src/aboutwindow.py",
+		"/home/andrew/Development/Projects/scrapstream/jtvlc/config.py",
 		"/home/andrew/Development/Projects/scrapstream/stream_window.py",
 		"/home/andrew/Development/Projects/scrapstream/main.py",
 		"/home/andrew/Development/Projects/scrapstream/jtvlc_manager.py",
@@ -203,136 +171,28 @@
 			[
 				{
 					"buffer": 0,
-					"file": "src/process_manager.py",
-					"settings":
-					{
-						"buffer_size": 1935,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								725,
-								725
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 102.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "src/stream_settings.py",
-					"settings":
-					{
-						"buffer_size": 1083,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								732,
-								732
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Syntaxes/Python Django.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/jtvlc_manager.py",
-					"settings":
-					{
-						"buffer_size": 1250,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								539,
-								240
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Syntaxes/Python Django.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "src/vlc_manager.py",
-					"settings":
-					{
-						"buffer_size": 1775,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1070,
-								1070
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Syntaxes/Python Django.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 102.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
 					"file": "src/stream_manager.py",
 					"settings":
 					{
-						"buffer_size": 2801,
+						"buffer_size": 2874,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2801,
-								2801
+								851,
+								851
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Syntaxes/Python Django.tmLanguage",
+							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1173.0,
+						"translation.y": 340.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

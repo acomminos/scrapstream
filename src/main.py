@@ -15,12 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gtk, GObject
-from scrapindicator import ScrapIndicator
+from scrap_indicator import ScrapIndicator
 
 def main():
 	GObject.threads_init() # Necessary to use multithreading
-    scrapindicator = ScrapIndicator()
-    Gtk.main()
+	scrapindicator = ScrapIndicator()
+	Gtk.main()
 
 if __name__ == "__main__":
 	main()

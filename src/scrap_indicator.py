@@ -17,10 +17,8 @@
 from gi.repository import Gtk
 from gi.repository import AppIndicator3 as appindicator
 from stream_window import StreamWindow
-from aboutwindow import AboutWindow
-import streammonitor
-import vlc_manager
-import jtvlc_manager
+from about_window import AboutWindow
+from stream_manager import StreamManager
 
 class ScrapstreamState(object):
     DISCONNECTED = 0
@@ -89,8 +87,8 @@ class ScrapIndicator(object):
         self.stream_window = StreamWindow()
 
         # Register update
-        monitor = streammonitor.get_stream_monitor()
-        monitor.subscribe(self.monitor_update)
+        manager = StreamManager.get_stream_manager()
+        manager.subscribe(self.stream_update)
 
     def start_stream(self, widget, data):
         self.stream_window.show()
@@ -103,13 +101,12 @@ class ScrapIndicator(object):
         about_window = AboutWindow()
         about_window.show()
 
-    def monitor_update(self):
-        monitor = streammonitor.get_stream_monitor()
-        if monitor.vlc_running and monitor.jtvlc_running:
+    def stream_update(self, manager):
+        if manager.is_vlc_running() and manager.is_jtvlc_running():
             self.set_stream_state(ScrapstreamState.STREAMING)
-        elif monitor.vlc_running:
+        elif manager.is_vlc_running():
             self.set_stream_state(ScrapstreamState.VLC_RUNNING)
-        elif monitor.jtvlc_running:
+        elif manager.is_jtvlc_running():
             self.set_stream_state(ScrapstreamState.JTVLC_RUNNING)
         else:
             self.set_stream_state(ScrapstreamState.DISCONNECTED)
@@ -133,7 +130,5 @@ class ScrapIndicator(object):
 
     def quit(self, widget, state):
         Gtk.main_quit()
-        monitor = streammonitor.get_stream_monitor()
-        monitor.stop()
-        vlc_manager.stop_vlc()
-        jtvlc_manager.stop_jtvlc()
+        manager = StreamManager.get_stream_manager()
+        manager.shutdown()
