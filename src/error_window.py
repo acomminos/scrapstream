@@ -19,17 +19,22 @@ from gi.repository import Gtk
 class ErrorWindow(object):
 
 	def __init__(self, process_name="UNKNOWN", output=None):
+		handlers = { "on_messagedialog1_close": self.quit }
 		builder = Gtk.Builder()
 		builder.add_from_file("xml/stream_error.glade")
 		self.dialog = builder.get_object("messagedialog1")
 		self.dialog.set_markup("A crucial part of Scrapstream, %s, has quit unexpectedly." % process_name)
 		self.error_text = builder.get_object("text_buffer")
+		builder.connect_signals(handlers)
 
 		if output is not None:
 			self.set_output(output)
 
 	def show(self):
 		self.dialog.show_all()
+
+	def quit(self, widget, userdata=None):
+		self.dialog.destroy()
 
 	def set_output(self, output):
 		self.error_text.set_text(output)

@@ -19,6 +19,7 @@ from gi.repository import AppIndicator3 as appindicator
 from stream_window import StreamWindow
 from about_window import AboutWindow
 from stream_manager import StreamManager
+import os
 
 class ScrapstreamState(object):
     DISCONNECTED = 0
@@ -30,8 +31,9 @@ class ScrapstreamState(object):
 class ScrapIndicator(object):
 
     def __init__(self):
-        self.indicator = appindicator.Indicator.new("scrapstream-client", "account-logged-in", appindicator.IndicatorCategory.APPLICATION_STATUS)
+        self.indicator = appindicator.Indicator.new("scrapstream-client", "scrapstream-idle", appindicator.IndicatorCategory.APPLICATION_STATUS)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
+        self.indicator.set_icon_theme_path(os.getcwd()+"/img")
 
         # create a menu
         menu = Gtk.Menu()
@@ -117,18 +119,25 @@ class ScrapIndicator(object):
 
         if state == ScrapstreamState.DISCONNECTED:
             stream_text = "Offline"
+            indicator_icon = "scrapstream-idle"
         elif state == ScrapstreamState.VLC_RUNNING:
             stream_text = "JTVLC not running"
+            indicator_icon = "scrapstream-connecting"
         elif state == ScrapstreamState.JTVLC_RUNNING:
             stream_text = "VLC not running"
+            indicator_icon = "scrapstream-connecting"
         elif state == ScrapstreamState.FAILURE:
             stream_text = "Broadcast Failed - See Status"
+            indicator_icon = "scrapstream-error"
         elif state == ScrapstreamState.STREAMING:
             stream_text = "Online"
+            indicator_icon = "scrapstream-active"
 
+        self.indicator.set_icon(indicator_icon)
         self.stream_status_item.set_label(stream_text)
 
     def quit(self, widget, state):
+        self.indicator.set_status(appindicator.IndicatorStatus.PASSIVE)
         Gtk.main_quit()
         manager = StreamManager.get_stream_manager()
         manager.shutdown()

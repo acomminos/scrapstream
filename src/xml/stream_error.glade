@@ -5,10 +5,10 @@
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Error</property>
+    <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="message_type">error</property>
-    <property name="buttons">close</property>
     <property name="text" translatable="yes">A crucial part of Scrapstream, %s, has stopped unexpectedly.</property>
     <property name="secondary_text" translatable="yes">Don't worry! We have output for cases like this. If you are unable to parse the output, then that really sucks.</property>
     <child internal-child="vbox">
@@ -20,6 +20,22 @@
           <object class="GtkButtonBox" id="messagedialog-action_area">
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button1">
+                <property name="label" translatable="yes">Close</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="on_messagedialog1_close" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -65,6 +81,9 @@
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="0">button1</action-widget>
+    </action-widgets>
   </object>
   <object class="GtkTextBuffer" id="text_buffer">
     <property name="text" translatable="yes">No output!</property>

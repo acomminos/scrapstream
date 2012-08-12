@@ -16,6 +16,7 @@
 
 from gi.repository import Gtk, GObject
 from scrap_indicator import ScrapIndicator
+from stream_settings import StreamSettings
 
 def main():
 	StreamSettings.load() # Load settings

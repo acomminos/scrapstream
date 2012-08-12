@@ -14,18 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ConfigParser import ConfigParser
+from ConfigParser import RawConfigParser
 import os
 
 class StreamSettings(object):
 
 	config_path = "%s/.scrapstream-config" % os.getenv("HOME")
+	config = None
 
 	# Capture settings
-	capture_width = 0
-	capture_height = 0
-	output_width = 0
-	output_height = 0
+	capture_width = 1920
+	capture_height = 1080
+	output_width = 1920
+	output_height = 1080
 	frame_rate = 30
 
 	# Credentials
@@ -40,12 +41,14 @@ class StreamSettings(object):
 	@staticmethod
 	def load():
 		""" Loads the stream settings file. If not present, creates one. """
-		config = ConfigParser()
-		config.read(StreamSettings.config_path)
+#		config = RawConfigParser()
+#		config.read(StreamSettings.config_path)
 
-		StreamSettings.stream_username = []
-
+#		StreamSettings.stream_username = config.get("section", "stream_username")
+#		StreamSettings.stream_key = config.get("section", "stream_key")
+		pass
 	@staticmethod
 	def save():
-		with open(StreamSettings.config_path, 'w') as configfile:
-			config.write(configfile)
+#		with open(StreamSettings.config_path, 'w') as configfile:
+#			config.write(configfile)
+		pass
