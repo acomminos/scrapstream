@@ -19,9 +19,14 @@ from gi.repository import Gtk
 class AboutWindow(object):
 
 	def __init__(self):
+		handlers = {"close": self.close}
 		builder = Gtk.Builder()
 		builder.add_from_file("xml/stream_about.glade")
 		self.dialog = builder.get_object("aboutdialog1")
+		builder.connect_signals(handlers)
 
 	def show(self):
 		self.dialog.show_all()
+
+	def close(self, widget, userdata=None):
+		self.dialog.destroy()

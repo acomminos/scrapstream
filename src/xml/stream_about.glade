@@ -16,6 +16,7 @@ Vladislav Yazhbin
 VLC Team</property>
     <property name="logo">res/morlunklogo.png</property>
     <property name="license_type">gpl-3-0</property>
+    <signal name="response" handler="close" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>
