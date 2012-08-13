@@ -33,7 +33,11 @@ class StreamWindow(object):
         builder.add_from_file("xml/stream_dialog.glade")
         self.dialog = builder.get_object("dialog1")
         self.username_entry = builder.get_object("username_entry")
+        self.username_entry.set_text(StreamSettings.stream_username)
         self.stream_key_entry = builder.get_object("stream_key_entry")
+        self.stream_key_entry.set_text(StreamSettings.stream_key)
+        self.remember_me = builder.get_object("remember_box")
+        self.remember_me.set_active(StreamSettings.remember_me)
         self.stream_button = builder.get_object("stream_button")
 
         # Icons

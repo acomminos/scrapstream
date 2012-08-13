@@ -55,7 +55,7 @@
 			"file": "src/scrap_indicator.py",
 			"settings":
 			{
-				"buffer_size": 4615,
+				"buffer_size": 5062,
 				"line_ending": "Unix"
 			}
 		},
@@ -63,7 +63,7 @@
 			"file": "src/stream_window.py",
 			"settings":
 			{
-				"buffer_size": 5307,
+				"buffer_size": 5568,
 				"line_ending": "Unix"
 			}
 		},
@@ -71,7 +71,7 @@
 			"file": "src/main.py",
 			"settings":
 			{
-				"buffer_size": 1014,
+				"buffer_size": 997,
 				"line_ending": "Unix"
 			}
 		},
@@ -92,18 +92,26 @@
 			}
 		},
 		{
-			"file": "src/vlc_manager.py",
+			"file": "src/stream_settings.py",
 			"settings":
 			{
-				"buffer_size": 1818,
+				"buffer_size": 3085,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/stream_settings.py",
+			"file": "src/error_window.py",
 			"settings":
 			{
-				"buffer_size": 1633,
+				"buffer_size": 1414,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/vlc_manager.py",
+			"settings":
+			{
+				"buffer_size": 1818,
 				"line_ending": "Unix"
 			}
 		}
@@ -132,10 +140,10 @@
 	},
 	"file_history":
 	[
+		"/home/andrew/Development/Projects/scrapstream/src/vlc_manager.py",
 		"/home/andrew/Development/Projects/scrapstream/src/stream_settings.py",
 		"/home/andrew/Development/Projects/scrapstream/src/process_manager.py",
 		"/home/andrew/Development/Projects/scrapstream/src/jtvlc_manager.py",
-		"/home/andrew/Development/Projects/scrapstream/src/vlc_manager.py",
 		"/home/andrew/Development/Projects/scrapstream/src/streamsettings.py",
 		"/home/andrew/Development/Projects/scrapstream/src/streammonitor.py",
 		"/home/andrew/Development/Projects/scrapstream/src/main.py",
@@ -227,7 +235,7 @@
 	"groups":
 	[
 		{
-			"selected": 7,
+			"selected": 6,
 			"sheets":
 			[
 				{
@@ -253,7 +261,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 357.0,
+						"translation.y": 459.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -263,15 +271,15 @@
 					"file": "src/scrap_indicator.py",
 					"settings":
 					{
-						"buffer_size": 4615,
+						"buffer_size": 5062,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4613,
-								4613
+								3345,
+								3345
 							]
 						],
 						"settings":
@@ -281,7 +289,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1377.0,
+						"translation.y": 1275.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -291,15 +299,15 @@
 					"file": "src/stream_window.py",
 					"settings":
 					{
-						"buffer_size": 5307,
+						"buffer_size": 5568,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								1607,
+								1607
 							]
 						],
 						"settings":
@@ -309,7 +317,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1581.0,
+						"translation.y": 306.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -319,15 +327,15 @@
 					"file": "src/main.py",
 					"settings":
 					{
-						"buffer_size": 1014,
+						"buffer_size": 997,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								820,
-								820
+								933,
+								933
 							]
 						],
 						"settings":
@@ -352,8 +360,8 @@
 						"selection":
 						[
 							[
-								1296,
-								1296
+								720,
+								720
 							]
 						],
 						"settings":
@@ -397,6 +405,60 @@
 				},
 				{
 					"buffer": 6,
+					"file": "src/stream_settings.py",
+					"settings":
+					{
+						"buffer_size": 3085,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1283,
+								1283
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 139.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/error_window.py",
+					"settings":
+					{
+						"buffer_size": 1414,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								552,
+								552
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
 					"file": "src/vlc_manager.py",
 					"settings":
 					{
@@ -407,8 +469,8 @@
 						"selection":
 						[
 							[
-								1818,
-								1818
+								695,
+								695
 							]
 						],
 						"settings":
@@ -416,33 +478,6 @@
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 255.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "src/stream_settings.py",
-					"settings":
-					{
-						"buffer_size": 1633,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								874,
-								874
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,

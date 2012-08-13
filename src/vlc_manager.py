@@ -26,8 +26,8 @@ class VLCManager(ProcessManager):
         return  ["cvlc",
                 "screen://",
                 "input_stream",
-                "--sout=#transcode{venc=x264{keyint=60,idrint=2},vcodec=h264,width=%(width)d,height=%(height)d,vb=300}:rtp{dst=127.0.0.1,port=1234,sdp=file://%(sdp_path)s}" 
-                % {'width': StreamSettings.output_width, 'height': StreamSettings.output_height, 'sdp_path': StreamSettings.sdp_path},
+                "--sout=#transcode{venc=x264{keyint=60,idrint=2},vcodec=h264,width=%(width)d,height=%(height)d,vb=300}:rtp{dst=127.0.0.1,port=%(sdp_port)d,sdp=file://%(sdp_path)s}" 
+                % {'width': StreamSettings.output_width, 'height': StreamSettings.output_height, 'sdp_port': StreamSettings.sdp_port, 'sdp_path': StreamSettings.sdp_path},
                 "--screen-fps", str(StreamSettings.frame_rate),
                 "--screen-width", str(StreamSettings.capture_width),
                 "--screen-height", str(StreamSettings.capture_height)]

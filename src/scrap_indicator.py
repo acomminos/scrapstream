@@ -17,6 +17,7 @@
 from gi.repository import Gtk
 from gi.repository import AppIndicator3 as appindicator
 from stream_window import StreamWindow
+from settings_window import SettingsWindow
 from about_window import AboutWindow
 from stream_manager import StreamManager
 import os
@@ -96,8 +97,7 @@ class ScrapIndicator(object):
         self.stream_window.show()
 
     def show_settings(self, widget, data):
-        #settings_window = Setting
-        print "Show settings"
+        SettingsWindow().show()
 
     def show_about(self, widget, data):
         about_window = AboutWindow()

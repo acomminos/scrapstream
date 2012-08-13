@@ -22,7 +22,7 @@ def main():
 	StreamSettings.load() # Load settings
 
 	GObject.threads_init() # Necessary to use multithreading
-	scrapindicator = ScrapIndicator()
+	ScrapIndicator()
 	Gtk.main()
 
 if __name__ == "__main__":
