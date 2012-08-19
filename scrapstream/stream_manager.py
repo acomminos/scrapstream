@@ -21,6 +21,7 @@ from error_window import ErrorWindow
 from stream_settings import StreamSettings
 from jtvlc_manager import JTVLCManager
 from vlc_manager import VLCManager
+from notification_manager import NotificationManager
 
 class StreamMonitor(threading.Thread):
 
@@ -77,6 +78,8 @@ class StreamManager(object):
     def start_streaming(self):
         self.streaming = True
 
+        NotificationManager.get_notification_manager().notify("Streaming started")
+
         self.stream_monitor.start_monitoring()
 
     def stream_update(self):        
@@ -121,6 +124,8 @@ class StreamManager(object):
         # Run the shutdown changes through the callbacks
         for callback in self.callbacks:
             callback(self)
+
+        NotificationManager.get_notification_manager().notify("Streaming stopped")
 
     def shutdown(self):
         self.stop_streaming()

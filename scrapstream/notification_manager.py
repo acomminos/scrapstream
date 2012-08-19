@@ -14,17 +14,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk, GObject
-from scrap_indicator import ScrapIndicator
-from stream_settings import StreamSettings
-from notification_manager import NotificationManager
+from gi.repository import Notify
 
-def main():
-	StreamSettings.load() # Load settings
+class NotificationManager(object):
 
-	GObject.threads_init() # Necessary to use multithreading
-	ScrapIndicator()
-	Gtk.main()
+	singleton = None
 
-if __name__ == "__main__":
-	main()
+	@staticmethod
+	def get_notification_manager():
+		if NotificationManager.singleton is None:
+			NotificationManager.singleton = NotificationManager()
+		return NotificationManager.singleton
+
+	def __init__(self):
+		Notify.init("Scrapstream")
+
+	def notify(self, message, title="Scrapstream"):
+		"""Creates and shows a notification with the specified message and title (if passed).
+		Returns the created notification. """
+		notification = Notify.Notification.new(title, message, "dialog-information")
+		notification.show()
+		return notification
