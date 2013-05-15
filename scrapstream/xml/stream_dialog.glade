@@ -3,7 +3,8 @@
   <!-- interface-requires gtk+ 3.0 -->
   <!-- interface-local-resource-path /home/andrew/Development/Projects/scrapstream/src/xml/res -->
   <object class="GtkDialog" id="dialog1">
-    <property name="height_request">42</property>
+    <property name="width_request">355</property>
+    <property name="height_request">75</property>
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Scrapstream</property>
@@ -35,6 +36,21 @@
               </packing>
             </child>
             <child>
+              <object class="GtkButton" id="settings_button">
+                <property name="label">gtk-preferences</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+                <signal name="clicked" handler="onSettingsActivate" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkButton" id="stream_button">
                 <property name="label" translatable="yes">Go Live!</property>
                 <property name="visible">True</property>
@@ -45,7 +61,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -119,6 +135,7 @@
     </child>
     <action-widgets>
       <action-widget response="0">cancel_button</action-widget>
+      <action-widget response="0">settings_button</action-widget>
       <action-widget response="0">stream_button</action-widget>
     </action-widgets>
   </object>

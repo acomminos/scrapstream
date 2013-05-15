@@ -18,12 +18,12 @@ from gi.repository import Gtk
 
 class ErrorWindow(object):
 
-	def __init__(self, process_name="UNKNOWN", output=None):
+	def __init__(self, output=None):
 		handlers = { "on_messagedialog1_close": self.quit }
 		builder = Gtk.Builder()
 		builder.add_from_file("xml/stream_error.glade")
 		self.dialog = builder.get_object("messagedialog1")
-		self.dialog.set_markup("A crucial part of Scrapstream, %s, has quit unexpectedly." % process_name)
+		self.dialog.set_markup("FFMpeg has quit unexpectedly.")
 		self.error_text = builder.get_object("text_buffer")
 		builder.connect_signals(handlers)
 

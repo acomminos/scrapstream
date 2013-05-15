@@ -6,7 +6,10 @@ from stream_settings import StreamSettings
 class FFMpegManager:
 
     command = "ffmpeg -f x11grab -s %(INPUT_WIDTH)dx%(INPUT_HEIGHT)d  -r %(FPS)d -i %(DISPLAY)s+%(INPUT_X)d,%(INPUT_Y)d -c:v libx264 -preset fast -pix_fmt yuv420p -s %(OUTPUT_WIDTH)dx%(OUTPUT_HEIGHT)d -threads 0 -f flv \"rtmp://live.twitch.tv/app/%(STREAM_KEY)s\""
-    
+
+    def __init__(self):
+        self.process = None
+
     def get_command(self):
         substituted = FFMpegManager.command % { 'INPUT_WIDTH': StreamSettings.capture_width,
                                   'INPUT_HEIGHT': StreamSettings.capture_height,
@@ -21,8 +24,19 @@ class FFMpegManager:
 
     def start(self):
         ffmpeg_command = shlex.split(self.get_command())
-        self.process = subprocess.Popen(ffmpeg_command)
+        self.process = subprocess.Popen(ffmpeg_command, stderr=subprocess.PIPE)
+
+    def is_running(self):
+       return self.process is not None and self.process.returncode is None
+
+    def is_error(self):
+        self.process.poll()
+        return self.process is not None and self.process.returncode is 1
+
+    def get_error(self):
+        return self.process.stderr.read()
 
     def stop(self):
         if self.process is not None and self.process.returncode is None:
-            self.process.terminate()
+            self.process.kill()
+            self.process.poll()

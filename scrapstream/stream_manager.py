@@ -28,7 +28,7 @@ class StreamMonitor(threading.Thread):
         super(StreamMonitor, self).__init__()
         self.thread_running = True
         self.monitoring = False
-        self.period = 1
+        self.period = 0.25
         self.manager = manager
 
         # Start monitoring
@@ -53,10 +53,6 @@ class StreamMonitor(threading.Thread):
 
             time.sleep(self.period)
 
-    def check_running(self):
-        print "VLC streaming: %r\nJTVLC running: %r\n-------------------" % (self.monitor.is_vlc_streaming(), self.monitor.is_jtvlc_running())
-
-
 class StreamManager(object):
 
     stream_manager = None
@@ -71,23 +67,30 @@ class StreamManager(object):
         self.streaming = False
         self.stream_monitor = StreamMonitor(self)
         self.callbacks = []
+        self.ffmpeg_manager = FFMpegManager()
 
     def start_streaming(self):
         self.streaming = True
-        self.ffmpeg_manager = FFMpegManager()
         self.ffmpeg_manager.start()
         #NotificationManager.get_notification_manager().notify("Streaming started")
 
         self.stream_monitor.start_monitoring()
 
-    def stream_update(self):        
-        for callback in self.callbacks:
-            callback(self)
+    def stream_update(self):
+        if self.ffmpeg_manager.is_error():
+            print "FFMpeg has crashed."
+            #self.stop_streaming()
+            self.error()
+            self.stop_streaming()
+            return
 
-    def error(self, process_manager):
+        #for callback in self.callbacks:
+        #    callback(self)
+
+    def error(self):
         """ Creates an error window informing the user that the passed process has crashed. """
-        error_window = ErrorWindow(process_manager.get_name())
-        error_window.set_output(process_manager.get_output())
+        error_window = ErrorWindow()
+        error_window.set_output(self.ffmpeg_manager.get_error())
         error_window.show()
 
     def stop_streaming(self):

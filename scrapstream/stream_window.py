@@ -18,12 +18,14 @@ from gi.repository import Gtk
 from threading import Timer
 from stream_manager import StreamManager
 from stream_settings import StreamSettings
+from settings_window import SettingsWindow
 
 class StreamWindow(object):
 
     def __init__(self):
         handlers = {
             "onLiveActivate": self.stream,
+            "onSettingsActivate": self.settings,
             "onCancelActivate": self.quit,
             "rememberToggle": self.remember_me,
             "delete-event": self.quit
@@ -36,6 +38,7 @@ class StreamWindow(object):
         self.stream_key_entry.set_text(StreamSettings.stream_key)
         self.remember_me = builder.get_object("remember_box")
         self.remember_me.set_active(StreamSettings.remember_me)
+        self.settings_button = builder.get_object("settings_button")
         self.stream_button = builder.get_object("stream_button")
 
         builder.connect_signals(handlers)
@@ -53,19 +56,30 @@ class StreamWindow(object):
         else:
             self.stop_stream()
 
+    def settings(self, button, userdata=None):
+        settings = SettingsWindow()
+        settings.show()
+
     def start_stream(self):
         StreamSettings.stream_key = self.stream_key_entry.get_text()
         StreamSettings.save()
 
         StreamManager.get_stream_manager().start_streaming()
+        self.settings_button.set_sensitive(False)
         self.stream_button.set_label("Stop")
 
     def stop_stream(self):
         StreamManager.get_stream_manager().stop_streaming()
+        self.settings_button.set_sensitive(True)
         self.stream_button.set_label("Go Live!")
 
     def stream_update(self, stream_manager):
-        x = 5
+        if stream_manager.streaming:
+            self.settings_button.set_sensitive(False)
+            self.stream_button.set_label("Stop")
+        else:
+            self.settings_button.set_sensitive(True)
+            self.stream_button.set_label("Go Live!")
 
     def remember_me(self, checkbox, userdata=None):
         """ Called when the 'Remember Me' checkbox is pressed. """
@@ -74,4 +88,6 @@ class StreamWindow(object):
 
     def quit(self, button, userdata=None):
         self.dialog.hide()
-        return True # Prevents the window from being destroyed. We only want to hide.
+        Gtk.main_quit()
+        manager = StreamManager.get_stream_manager()
+        manager.shutdown()
