@@ -42,16 +42,18 @@ class StreamSettings(object):
     @staticmethod
     def load():
         """ Loads the stream settings file. If not present, creates one. """
+
+        # Plug in default GDK screen size values, in case not set
+        screen = Gdk.Screen.get_default()
+        StreamSettings.capture_width = StreamSettings.output_width = screen.get_width()
+        StreamSettings.capture_height = StreamSettings.output_height = screen.get_height()
+        
         try:
             if not os.path.exists(StreamSettings.config_dir):
                 os.makedirs(StreamSettings.config_dir)
 
             open(StreamSettings.config_path) # Attempt opening the config file, will throw IOError if does not exist
-
-            # Create window to get screen metrics
-            screen = Gdk.Screen.get_default()
-            print "width: %d, height: %d" % (screen.get_width(), screen.get_height())
-
+            
             config = SafeConfigParser()
             config.read(StreamSettings.config_path)
 
@@ -68,22 +70,14 @@ class StreamSettings(object):
                 StreamSettings.capture_y = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_y")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_width"):
                 StreamSettings.capture_width = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_width")
-            else:
-                StreamSettings.capture_width = screen.get_width()
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_height"):
                 StreamSettings.capture_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_height")
-            else:
-                StreamSettings.capture_height = screen.get_height()
 
             # Output
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "output_width"):
                 StreamSettings.output_width = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_width")
-            else:
-                StreamSettings.output_width = StreamSettings.capture_width
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "output_height"):
                 StreamSettings.output_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_height")
-            else:
-                StreamSettings.output_height = StreamSettings.capture_height
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate"):
                 StreamSettings.frame_rate = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate")
 
