@@ -14,17 +14,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import signal
 from gi.repository import Gtk, GObject
-from scrap_indicator import ScrapIndicator
+#from scrap_indicator import ScrapIndicator
 from stream_settings import StreamSettings
+from stream_window import StreamWindow
 from notification_manager import NotificationManager
 
 def main():
-	StreamSettings.load() # Load settings
+        StreamSettings.load() # Load settings
 
-	GObject.threads_init() # Necessary to use multithreading
-	ScrapIndicator()
-	Gtk.main()
+        GObject.threads_init() # Necessary to use multithreading
+        #ScrapIndicator()
+        window = StreamWindow()
+        window.show()
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        Gtk.main()
 
 if __name__ == "__main__":
-	main()
+        main()

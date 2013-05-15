@@ -30,8 +30,6 @@ class SettingsWindow(object):
         self.capture_y = builder.get_object("capture_y")
         self.capture_width = builder.get_object("capture_width")
         self.capture_height = builder.get_object("capture_height")
-        self.sdp_path = builder.get_object("sdp_path")
-        self.sdp_port = builder.get_object("sdp_port")
         builder.connect_signals(handlers)
 
         self.load_settings()
@@ -45,9 +43,6 @@ class SettingsWindow(object):
         self.capture_y.set_text("%d" % StreamSettings.capture_y)
         self.capture_width.set_text("%d" % StreamSettings.capture_width)
         self.capture_height.set_text("%d" % StreamSettings.capture_height)
-        # Immutable settings (for now)
-        self.sdp_path.set_text(StreamSettings.sdp_path)
-        self.sdp_port.set_text("%d" % StreamSettings.sdp_port)
 
     def save_settings(self):
         """Saves settings changed in this window to the StreamSettings module, followed by a commit to the config file."""

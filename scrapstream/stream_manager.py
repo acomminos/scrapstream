@@ -19,8 +19,7 @@ import threading
 import time
 from error_window import ErrorWindow
 from stream_settings import StreamSettings
-from jtvlc_manager import JTVLCManager
-from vlc_manager import VLCManager
+from ffmpeg_manager import FFMpegManager
 from notification_manager import NotificationManager
 
 class StreamMonitor(threading.Thread):
@@ -71,40 +70,17 @@ class StreamManager(object):
     def __init__(self):
         self.streaming = False
         self.stream_monitor = StreamMonitor(self)
-        self.vlc_manager = VLCManager()
-        self.jtvlc_manager = JTVLCManager()
         self.callbacks = []
 
     def start_streaming(self):
         self.streaming = True
-
-        NotificationManager.get_notification_manager().notify("Streaming started")
+        self.ffmpeg_manager = FFMpegManager()
+        self.ffmpeg_manager.start()
+        #NotificationManager.get_notification_manager().notify("Streaming started")
 
         self.stream_monitor.start_monitoring()
 
     def stream_update(self):        
-        # Start VLC
-        if self.is_vlc_running() is False:
-            if self.vlc_manager.is_started() is False:
-                # Start VLC if has not started and is not running
-                self.vlc_manager.start()
-            else:
-                # Throw error if VLC has started and is not running
-                self.error(self.vlc_manager)
-                self.stop_streaming()
-                pass
-
-        # Start JTVLC
-        if self.is_jtvlc_running() is False and self.is_vlc_streaming():
-            if self.jtvlc_manager.is_started() is False:
-                # Start JTVLC if has not started and is not running
-                self.jtvlc_manager.start()
-            else:
-                # Throw error if JTVLC has started and is not running
-                self.error(self.jtvlc_manager)
-                self.stop_streaming()
-                pass
-
         for callback in self.callbacks:
             callback(self)
 
@@ -118,14 +94,13 @@ class StreamManager(object):
         self.streaming = False
 
         self.stream_monitor.stop_monitoring()
-        self.vlc_manager.stop()
-        self.jtvlc_manager.stop()
+        self.ffmpeg_manager.stop()
 
         # Run the shutdown changes through the callbacks
         for callback in self.callbacks:
             callback(self)
 
-        NotificationManager.get_notification_manager().notify("Streaming stopped")
+        #NotificationManager.get_notification_manager().notify("Streaming stopped")
 
     def shutdown(self):
         self.stop_streaming()
@@ -139,22 +114,3 @@ class StreamManager(object):
 
     def unsubscribe(self, callback):
         self.callbacks.delete(callback)
-
-    def is_vlc_running(self):
-        return self.vlc_manager.is_running()
-
-    def is_jtvlc_running(self):
-        return self.jtvlc_manager.is_running()
-
-    def is_vlc_streaming(self):
-        """Returns whether or not VLC is streaming anything to scrapstream's SDP file."""
-        try:
-            f = open(StreamSettings.sdp_path, 'r')
-            sdp_contents = f.read()
-            if sdp_contents == '' or sdp_contents == '(null)':
-                f.close()
-                return False
-            f.close()
-            return True
-        except IOError:
-            return False

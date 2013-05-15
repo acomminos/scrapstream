@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ConfigParser import SafeConfigParser, NoSectionError
+from gi.repository import Gtk, Gdk
 import os
 
 class StreamSettings(object):
@@ -28,21 +29,15 @@ class StreamSettings(object):
     # Capture settings
     capture_x = 0
     capture_y = 0
-    capture_width = 0
-    capture_height = 0
-    output_width = 0
-    output_height = 0
+    capture_width = None
+    capture_height = None
+    output_width = None
+    output_height = None
     frame_rate = 30
 
     # Credentials
-    stream_username = ""
     stream_key = ""
     remember_me = False
-
-    # SDP
-    sdp_name = "stream.sdp"
-    sdp_path = "%s/%s" % (config_dir, sdp_name)
-    sdp_port = 1234
 
     @staticmethod
     def load():
@@ -53,12 +48,14 @@ class StreamSettings(object):
 
             open(StreamSettings.config_path) # Attempt opening the config file, will throw IOError if does not exist
 
+            # Create window to get screen metrics
+            screen = Gdk.Screen.get_default()
+            print "width: %d, height: %d" % (screen.get_width(), screen.get_height())
+
             config = SafeConfigParser()
             config.read(StreamSettings.config_path)
 
             # Streaming
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "stream_username"):
-                StreamSettings.stream_username = config.get(StreamSettings.SCRAPSTREAM_SECTION, "stream_username")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "stream_key"):
                 StreamSettings.stream_key = config.get(StreamSettings.SCRAPSTREAM_SECTION, "stream_key")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "remember_me"):
@@ -71,14 +68,22 @@ class StreamSettings(object):
                 StreamSettings.capture_y = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_y")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_width"):
                 StreamSettings.capture_width = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_width")
+            else:
+                StreamSettings.capture_width = screen.get_width()
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_height"):
                 StreamSettings.capture_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_height")
+            else:
+                StreamSettings.capture_height = screen.get_height()
 
             # Output
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "output_width"):
                 StreamSettings.output_width = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_width")
+            else:
+                StreamSettings.output_width = StreamSettings.capture_width
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "output_height"):
                 StreamSettings.output_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_height")
+            else:
+                StreamSettings.output_height = StreamSettings.capture_height
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate"):
                 StreamSettings.frame_rate = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate")
 
@@ -91,15 +96,18 @@ class StreamSettings(object):
     def save():
         config = SafeConfigParser()
         config.add_section(StreamSettings.SCRAPSTREAM_SECTION)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "stream_username", StreamSettings.stream_username if StreamSettings.remember_me else "")
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "stream_key", StreamSettings.stream_key if StreamSettings.remember_me else "")
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "remember_me", "%r" % StreamSettings.remember_me)
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_x", "%d" % StreamSettings.capture_x)
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_y", "%d" % StreamSettings.capture_y)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_width", "%d" % StreamSettings.capture_width)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_height", "%d" % StreamSettings.capture_height)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_width", "%d" % StreamSettings.output_width)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_height", "%d" % StreamSettings.output_height)
+        if StreamSettings.capture_width is not None:
+            config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_width", "%d" % StreamSettings.capture_width)
+        if StreamSettings.capture_height is not None:
+            config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_height", "%d" % StreamSettings.capture_height)
+        if StreamSettings.output_width is not None:
+            config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_width", "%d" % StreamSettings.output_width)
+        if StreamSettings.output_height is not None:
+            config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_height", "%d" % StreamSettings.output_height)
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate", "%d" % StreamSettings.frame_rate)
 
         # Write configuration
