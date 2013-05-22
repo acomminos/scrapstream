@@ -62,7 +62,7 @@ class SettingsWindow(object):
         try:
             self.save_settings()
         except:
-            print "Could not save settings!"
+            print("Could not save settings!")
         self.dialog.destroy()
 
     def discard(self, widget, userdata=None):

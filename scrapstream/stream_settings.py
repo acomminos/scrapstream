@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ConfigParser import SafeConfigParser, NoSectionError
+from configparser import SafeConfigParser, NoSectionError
 from gi.repository import Gtk, Gdk
 import os
 
@@ -82,9 +82,9 @@ class StreamSettings(object):
                 StreamSettings.frame_rate = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate")
 
         except IOError:
-            print "Config file does not exist! Will create on next save."
+            print("Config file does not exist! Will create on next save.")
         except NoSectionError:
-            print "Config file is incorrectly configured! Will recreate on next save."
+            print("Config file is incorrectly configured! Will recreate on next save.")
 
     @staticmethod
     def save():
@@ -107,4 +107,4 @@ class StreamSettings(object):
         # Write configuration
         config_file = open(StreamSettings.config_path, 'w')
         config.write(config_file)
-        print "Config file saved."
+        print("Config file saved.")

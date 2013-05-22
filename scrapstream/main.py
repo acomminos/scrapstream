@@ -25,7 +25,7 @@ def main():
         StreamSettings.load() # Load settings
 
         GObject.threads_init() # Necessary to use multithreading
-        #ScrapIndicator()
+        #ScrapIndicator() TODO re-add ubuntu indicator, coding from arch with i3 now
         window = StreamWindow()
         window.show()
         signal.signal(signal.SIGINT, signal.SIG_DFL)

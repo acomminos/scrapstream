@@ -78,7 +78,7 @@ class StreamManager(object):
 
     def stream_update(self):
         if self.ffmpeg_manager.is_error():
-            print "FFMpeg has crashed."
+            print("FFMpeg has crashed.")
             #self.stop_streaming()
             self.error()
             self.stop_streaming()
