@@ -1,4 +1,4 @@
 scrapstream
 ===========
 
-A graphical frontend for ffmpeg streaming to Justin.tv and Twitch.tv, written in Python.
+An FFMpeg-based streaming client written in Python 3 for use with justin.tv and twitch.tv.
