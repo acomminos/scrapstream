@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk
+from gi.repository import Gtk, WebKit2
 from threading import Timer
 from stream_manager import StreamManager
 from stream_settings import StreamSettings
 from settings_window import SettingsWindow
+
+ALPHA_TEXT = "<h1>Scrapstream Alpha</h1>Scrapstream is in alpha right now.<br>Don't use this for professional streami    ng!<br><br>Enjoy!<br>- Andrew (Morlunk)"
 
 class StreamWindow(object):
 
@@ -36,6 +38,8 @@ class StreamWindow(object):
         builder = Gtk.Builder()
         builder.add_from_file("xml/stream_dialog.glade")
         self.dialog = builder.get_object("dialog1")
+        self.username_entry = builder.get_object("username_entry")
+        self.username_entry.set_text(StreamSettings.username)
         self.stream_key_entry = builder.get_object("stream_key_entry")
         self.stream_key_entry.set_text(StreamSettings.stream_key)
         self.remember_me = builder.get_object("remember_box")
@@ -47,6 +51,14 @@ class StreamWindow(object):
         self.custom_audio.set_active(StreamSettings.custom_audio)
         self.custom_audio_file = builder.get_object("audio_filechooser")
         self.custom_audio_file.set_filename(StreamSettings.audio_file)
+
+        # Show stream in WebKit frame
+        frame = builder.get_object('web_box')
+        self.webview = WebKit2.WebView()
+        self.webview.set_hexpand(True)
+        self.webview.set_vexpand(True)
+        self.webview.load_html(ALPHA_TEXT, "")
+        frame.add(self.webview)
 
         builder.connect_signals(handlers)
 
@@ -68,12 +80,14 @@ class StreamWindow(object):
         settings.show()
 
     def start_stream(self):
+        StreamSettings.username = self.username_entry.get_text()
         StreamSettings.stream_key = self.stream_key_entry.get_text()
         StreamSettings.save()
 
         StreamManager.get_stream_manager().start_streaming()
         self.settings_button.set_sensitive(False)
         self.stream_button.set_label("Stop")
+        self.webview.load_uri("http://twitch.tv/%s/popout" % self.username_entry.get_text())
 
     def stop_stream(self):
         StreamManager.get_stream_manager().stop_streaming()

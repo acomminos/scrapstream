@@ -36,6 +36,7 @@ class StreamSettings(object):
     frame_rate = 30
 
     # Credentials
+    username = ""
     stream_key = ""
     remember_me = False
 
@@ -62,6 +63,8 @@ class StreamSettings(object):
             config.read(StreamSettings.config_path)
 
             # Streaming
+            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "username"):
+                StreamSettings.username = config.get(StreamSettings.SCRAPSTREAM_SECTION, "username")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "stream_key"):
                 StreamSettings.stream_key = config.get(StreamSettings.SCRAPSTREAM_SECTION, "stream_key")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "remember_me"):
@@ -100,6 +103,7 @@ class StreamSettings(object):
     def save():
         config = SafeConfigParser()
         config.add_section(StreamSettings.SCRAPSTREAM_SECTION)
+        config.set(StreamSettings.SCRAPSTREAM_SECTION, "username", StreamSettings.username if StreamSettings.remember_me else "")
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "stream_key", StreamSettings.stream_key if StreamSettings.remember_me else "")
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "remember_me", "%r" % StreamSettings.remember_me)
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_x", "%d" % StreamSettings.capture_x)
