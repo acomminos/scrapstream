@@ -28,6 +28,8 @@ class StreamWindow(object):
             "onSettingsActivate": self.settings,
             "onCancelActivate": self.quit,
             "rememberToggle": self.remember_me,
+            "custom-audio-set": self.custom_audio_set,
+            "audio-file-set": self.audio_file_set,
             "delete-event": self.quit
         }
 
@@ -40,6 +42,11 @@ class StreamWindow(object):
         self.remember_me.set_active(StreamSettings.remember_me)
         self.settings_button = builder.get_object("settings_button")
         self.stream_button = builder.get_object("stream_button")
+
+        self.custom_audio = builder.get_object("audio_usecustom")
+        self.custom_audio.set_active(StreamSettings.custom_audio)
+        self.custom_audio_file = builder.get_object("audio_filechooser")
+        self.custom_audio_file.set_filename(StreamSettings.audio_file)
 
         builder.connect_signals(handlers)
 
@@ -84,6 +91,14 @@ class StreamWindow(object):
     def remember_me(self, checkbox, userdata=None):
         """ Called when the 'Remember Me' checkbox is pressed. """
         StreamSettings.remember_me = checkbox.get_active()
+        StreamSettings.save()
+
+    def custom_audio_set(self, widget, userdata=None):
+        StreamSettings.custom_audio = widget.get_active()
+        StreamSettings.save()
+
+    def audio_file_set(self, widget, userdata=None):
+        StreamSettings.audio_file = widget.get_filename()
         StreamSettings.save()
 
     def quit(self, button, userdata=None):

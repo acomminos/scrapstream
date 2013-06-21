@@ -39,6 +39,10 @@ class StreamSettings(object):
     stream_key = ""
     remember_me = False
 
+    # Advanced
+    custom_audio = False
+    audio_file = ""
+
     @staticmethod
     def load():
         """ Loads the stream settings file. If not present, creates one. """
@@ -80,6 +84,12 @@ class StreamSettings(object):
                 StreamSettings.output_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_height")
             if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate"):
                 StreamSettings.frame_rate = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate")
+            
+            # Advanced
+            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "custom_audio"):
+                StreamSettings.custom_audio = config.getboolean(StreamSettings.SCRAPSTREAM_SECTION, "custom_audio")
+            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "audio_file"):
+                StreamSettings.audio_file = config.get(StreamSettings.SCRAPSTREAM_SECTION, "audio_file")
 
         except IOError:
             print("Config file does not exist! Will create on next save.")
@@ -103,6 +113,8 @@ class StreamSettings(object):
         if StreamSettings.output_height is not None:
             config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_height", "%d" % StreamSettings.output_height)
         config.set(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate", "%d" % StreamSettings.frame_rate)
+        config.set(StreamSettings.SCRAPSTREAM_SECTION, "custom_audio", "%r" % StreamSettings.custom_audio)
+        config.set(StreamSettings.SCRAPSTREAM_SECTION, "audio_file", StreamSettings.audio_file)
 
         # Write configuration
         config_file = open(StreamSettings.config_path, 'w')
