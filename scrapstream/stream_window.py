@@ -18,7 +18,6 @@ from gi.repository import Gtk, WebKit2
 from threading import Timer
 from stream_manager import StreamManager
 from stream_settings import StreamSettings
-from settings_window import SettingsWindow
 
 ALPHA_TEXT = "<h1>Scrapstream Alpha</h1>Scrapstream is in alpha right now.<br>Don't use this for professional streami    ng!<br><br>Enjoy!<br>- Andrew (Morlunk)"
 
@@ -27,7 +26,6 @@ class StreamWindow(object):
     def __init__(self):
         handlers = {
             "onLiveActivate": self.stream,
-            "onSettingsActivate": self.settings,
             "onCancelActivate": self.quit,
             "rememberToggle": self.remember_me,
             "custom-audio-set": self.custom_audio_set,
@@ -39,18 +37,23 @@ class StreamWindow(object):
         builder.add_from_file("xml/stream_dialog.glade")
         self.dialog = builder.get_object("dialog1")
         self.username_entry = builder.get_object("username_entry")
-        self.username_entry.set_text(StreamSettings.username)
         self.stream_key_entry = builder.get_object("stream_key_entry")
-        self.stream_key_entry.set_text(StreamSettings.stream_key)
         self.remember_me = builder.get_object("remember_box")
-        self.remember_me.set_active(StreamSettings.remember_me)
-        self.settings_button = builder.get_object("settings_button")
         self.stream_button = builder.get_object("stream_button")
 
+        # Settings
         self.custom_audio = builder.get_object("audio_usecustom")
-        self.custom_audio.set_active(StreamSettings.custom_audio)
         self.custom_audio_file = builder.get_object("audio_filechooser")
-        self.custom_audio_file.set_filename(StreamSettings.audio_file)
+        self.framerate_scale = builder.get_object("framerate_scale")
+        self.fps_adjustment = builder.get_object("fps_adjustment")
+        self.output_width = builder.get_object("output_width")
+        self.output_height = builder.get_object("output_height")
+        self.capture_x = builder.get_object("capture_x")
+        self.capture_y = builder.get_object("capture_y")
+        self.capture_width = builder.get_object("capture_width")
+        self.capture_height = builder.get_object("capture_height")
+
+        self.load_settings()
 
         # Show stream in WebKit frame
         frame = builder.get_object('web_box')
@@ -65,6 +68,34 @@ class StreamWindow(object):
         # Monitor for vlc and jtvlc process changes
         manager = StreamManager.get_stream_manager()
         manager.subscribe(self.stream_update)
+    
+    def load_settings(self):
+        self.username_entry.set_text(StreamSettings.username)
+        self.stream_key_entry.set_text(StreamSettings.stream_key)
+        self.remember_me.set_active(StreamSettings.remember_me)
+        self.fps_adjustment.set_value(StreamSettings.frame_rate)
+        self.output_width.set_text("%d" % StreamSettings.output_width)
+        self.output_height.set_text("%d" % StreamSettings.output_height)
+        self.capture_x.set_text("%d" % StreamSettings.capture_x)
+        self.capture_y.set_text("%d" % StreamSettings.capture_y)
+        self.capture_width.set_text("%d" % StreamSettings.capture_width)
+        self.capture_height.set_text("%d" % StreamSettings.capture_height)
+        self.custom_audio.set_active(StreamSettings.custom_audio)
+        self.custom_audio_file.set_filename(StreamSettings.audio_file)
+
+    def save_settings(self):
+        """Saves settings changed in this window to the StreamSettings module, followed by a commit to the config file."""
+        StreamSettings.username = self.username_entry.get_text()
+        StreamSettings.stream_key = self.stream_key_entry.get_text()
+        StreamSettings.frame_rate = self.fps_adjustment.get_value()
+        StreamSettings.output_width = int(self.output_width.get_text())
+        StreamSettings.output_height = int(self.output_height.get_text())
+        StreamSettings.capture_x = int(self.capture_x.get_text())
+        StreamSettings.capture_y = int(self.capture_y.get_text())
+        StreamSettings.capture_width = int(self.capture_width.get_text())
+        StreamSettings.capture_height = int(self.capture_height.get_text())
+        StreamSettings.save()
+
 
     def show(self):
         self.dialog.show_all()
@@ -75,31 +106,21 @@ class StreamWindow(object):
         else:
             self.stop_stream()
 
-    def settings(self, button, userdata=None):
-        settings = SettingsWindow()
-        settings.show()
-
     def start_stream(self):
-        StreamSettings.username = self.username_entry.get_text()
-        StreamSettings.stream_key = self.stream_key_entry.get_text()
-        StreamSettings.save()
+        self.save_settings()
 
         StreamManager.get_stream_manager().start_streaming()
-        self.settings_button.set_sensitive(False)
         self.stream_button.set_label("Stop")
         self.webview.load_uri("http://twitch.tv/%s/popout" % self.username_entry.get_text())
 
     def stop_stream(self):
         StreamManager.get_stream_manager().stop_streaming()
-        self.settings_button.set_sensitive(True)
         self.stream_button.set_label("Go Live!")
 
     def stream_update(self, stream_manager):
         if stream_manager.streaming:
-            self.settings_button.set_sensitive(False)
             self.stream_button.set_label("Stop")
         else:
-            self.settings_button.set_sensitive(True)
             self.stream_button.set_label("Go Live!")
 
     def remember_me(self, checkbox, userdata=None):
