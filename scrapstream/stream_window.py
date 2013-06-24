@@ -27,9 +27,7 @@ class StreamWindow(object):
         handlers = {
             "onLiveActivate": self.stream,
             "onCancelActivate": self.quit,
-            "rememberToggle": self.remember_me,
-            "custom-audio-set": self.custom_audio_set,
-            "audio-file-set": self.audio_file_set,
+            "save-settings": self.save_settings,
             "delete-event": self.quit
         }
 
@@ -83,9 +81,10 @@ class StreamWindow(object):
         self.custom_audio.set_active(StreamSettings.custom_audio)
         self.custom_audio_file.set_filename(StreamSettings.audio_file)
 
-    def save_settings(self):
+    def save_settings(self, widget=None, userdata=None):
         """Saves settings changed in this window to the StreamSettings module, followed by a commit to the config file."""
         StreamSettings.username = self.username_entry.get_text()
+        StreamSettings.remember_me = self.remember_me.get_active()
         StreamSettings.stream_key = self.stream_key_entry.get_text()
         StreamSettings.frame_rate = self.fps_adjustment.get_value()
         StreamSettings.output_width = int(self.output_width.get_text())
@@ -94,6 +93,8 @@ class StreamWindow(object):
         StreamSettings.capture_y = int(self.capture_y.get_text())
         StreamSettings.capture_width = int(self.capture_width.get_text())
         StreamSettings.capture_height = int(self.capture_height.get_text())
+        StreamSettings.custom_audio = self.custom_audio.get_active()
+        StreamSettings.audio_file = self.custom_audio_file.get_filename()
         StreamSettings.save()
 
 
@@ -101,43 +102,28 @@ class StreamWindow(object):
         self.dialog.show_all()
 
     def stream(self, button, userdata=None):
-        if StreamManager.get_stream_manager().is_streaming() is False:
+        if StreamManager.get_stream_manager().is_running() is False:
             self.start_stream()
         else:
             self.stop_stream()
 
     def start_stream(self):
-        self.save_settings()
-
-        StreamManager.get_stream_manager().start_streaming()
+        StreamManager.get_stream_manager().start()
         self.stream_button.set_label("Stop")
         self.webview.load_uri("http://twitch.tv/%s/popout" % self.username_entry.get_text())
 
     def stop_stream(self):
-        StreamManager.get_stream_manager().stop_streaming()
+        StreamManager.get_stream_manager().stop()
         self.stream_button.set_label("Go Live!")
 
     def stream_update(self, stream_manager):
-        if stream_manager.streaming:
+        if stream_manager.is_running():
             self.stream_button.set_label("Stop")
         else:
             self.stream_button.set_label("Go Live!")
-
-    def remember_me(self, checkbox, userdata=None):
-        """ Called when the 'Remember Me' checkbox is pressed. """
-        StreamSettings.remember_me = checkbox.get_active()
-        StreamSettings.save()
-
-    def custom_audio_set(self, widget, userdata=None):
-        StreamSettings.custom_audio = widget.get_active()
-        StreamSettings.save()
-
-    def audio_file_set(self, widget, userdata=None):
-        StreamSettings.audio_file = widget.get_filename()
-        StreamSettings.save()
 
     def quit(self, button, userdata=None):
         self.dialog.hide()
         Gtk.main_quit()
         manager = StreamManager.get_stream_manager()
-        manager.shutdown()
+        manager.stop()

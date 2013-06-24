@@ -18,74 +18,39 @@ from gi.repository import GLib
 import threading
 import time
 from error_window import ErrorWindow
-from stream_settings import StreamSettings
 from ffmpeg_manager import FFMpegManager
 from notification_manager import NotificationManager
 
-class StreamMonitor(threading.Thread):
+class StreamThread(threading.Thread):
 
-    def __init__(self, manager):
-        super(StreamMonitor, self).__init__()
-        self.thread_running = True
-        self.monitoring = False
-        self.period = 0.25
-        self.manager = manager
+        def __init__(self, manager):
+            super(StreamThread, self).__init__()
+            self.manager = manager;
 
-        # Start monitoring
-        self.start()
+        def run(self):
+            #NotificationManager.get_notification_manager().notify("Streaming started")
+            self.manager.ffmpeg_manager.start()
+            return_code = self.manager.ffmpeg_manager.process.wait()
+            if return_code == 1:
+                print("FFMpeg has crashed.")
+                self.error()
 
+            GLib.idle_add(self.manager.send_callbacks)
+            self.manager.thread = None
 
-    def start_monitoring(self):
-        # Start required processes
-        self.monitoring = True
-
-    def stop_monitoring(self):
-        self.monitoring = False
-
-    def stop(self):
-        self.thread_running = False
-        self.join()
-
-    def run(self):
-        while self.thread_running:
-            if self.monitoring:
-                GLib.idle_add(self.manager.stream_update) # Execute callback on main thread
-
-            time.sleep(self.period)
-
-class StreamManager(object):
+class StreamManager(threading.Thread):
 
     stream_manager = None
 
-    @staticmethod
     def get_stream_manager():
         if StreamManager.stream_manager is None:
             StreamManager.stream_manager = StreamManager()
         return StreamManager.stream_manager
 
     def __init__(self):
-        self.streaming = False
-        self.stream_monitor = StreamMonitor(self)
+        self.thread = None
         self.callbacks = []
         self.ffmpeg_manager = FFMpegManager()
-
-    def start_streaming(self):
-        self.streaming = True
-        self.ffmpeg_manager.start()
-        #NotificationManager.get_notification_manager().notify("Streaming started")
-
-        self.stream_monitor.start_monitoring()
-
-    def stream_update(self):
-        if self.ffmpeg_manager.is_error():
-            print("FFMpeg has crashed.")
-            #self.stop_streaming()
-            self.error()
-            self.stop_streaming()
-            return
-
-        #for callback in self.callbacks:
-        #    callback(self)
 
     def error(self):
         """ Creates an error window informing the user that the passed process has crashed. """
@@ -93,24 +58,23 @@ class StreamManager(object):
         error_window.set_output(self.ffmpeg_manager.get_error())
         error_window.show()
 
-    def stop_streaming(self):
-        self.streaming = False
+    def start(self):
+        assert self.thread == None
+        self.thread = StreamThread(self)
+        self.thread.start()
 
-        self.stream_monitor.stop_monitoring()
+    def stop(self):
         self.ffmpeg_manager.stop()
+        self.thread = None
 
-        # Run the shutdown changes through the callbacks
+    def is_running(self):
+        if self.thread is not None:
+            return self.thread.is_alive()
+        return False
+
+    def send_callbacks(self):
         for callback in self.callbacks:
             callback(self)
-
-        #NotificationManager.get_notification_manager().notify("Streaming stopped")
-
-    def shutdown(self):
-        self.stop_streaming()
-        self.stream_monitor.stop()
-
-    def is_streaming(self):
-        return self.streaming
 
     def subscribe(self, callback):
         self.callbacks.append(callback)

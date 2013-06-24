@@ -24,24 +24,17 @@ class FFMpegManager:
                                   'OUTPUT_HEIGHT': StreamSettings.output_height,
                                   'STREAM_KEY': StreamSettings.stream_key }
         #substituted += " "+FFMpegManager.windowed_output
+        if(StreamSettings.custom_audio):
+            substituted += FFMpegManager.audio_custom % {'AUDIO_FILE': StreamSettings.audio_file }
+        else:
+            substituted += FFMpegManager.audio_pulse # TODO add support for ALSA, input source selection
         return substituted
 
     def start(self):
         ffmpeg_command = self.get_command()
-        if(StreamSettings.custom_audio):
-            ffmpeg_command += FFMpegManager.audio_custom % {'AUDIO_FILE': StreamSettings.audio_file }
-        else:
-            ffmpeg_command += FFMpegManager.audio_pulse # TODO add support for ALSA, input source selection
-
         ffmpeg_split_command = shlex.split(ffmpeg_command)
-        print("Running FFMpeg: " , ffmpeg_split_command)
-        self.process = subprocess.Popen(ffmpeg_split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    def is_running(self):
-       return self.process is not None and self.process.returncode is None
-
-    def is_error(self):
-        return self.process.poll() == 1
+        print("Running FFMpeg: " , ffmpeg_command)
+        self.process = subprocess.Popen(ffmpeg_split_command, stderr=subprocess.PIPE)
 
     def get_error(self):
         return self.process.stderr.read().decode()
@@ -49,4 +42,4 @@ class FFMpegManager:
     def stop(self):
         if self.process is not None and self.process.returncode is None:
             self.process.kill()
-            self.process.poll()
+            #self.process.poll()
