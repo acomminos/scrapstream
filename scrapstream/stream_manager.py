@@ -29,7 +29,6 @@ class StreamThread(threading.Thread):
 
         def run(self):
             #NotificationManager.get_notification_manager().notify("Streaming started")
-            self.manager.ffmpeg_manager.start()
             return_code = self.manager.ffmpeg_manager.process.wait()
             if return_code == 1:
                 print("FFMpeg has crashed.")
@@ -60,6 +59,7 @@ class StreamManager(threading.Thread):
 
     def start(self):
         assert self.thread == None
+        self.ffmpeg_manager.start()
         self.thread = StreamThread(self)
         self.thread.start()
 
