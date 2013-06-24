@@ -32,7 +32,7 @@ class StreamThread(threading.Thread):
             return_code = self.manager.ffmpeg_manager.process.wait()
             if return_code == 1:
                 print("FFMpeg has crashed.")
-                self.error()
+                self.manager.error()
 
             GLib.idle_add(self.manager.send_callbacks)
             self.manager.thread = None
