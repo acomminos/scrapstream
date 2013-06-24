@@ -28,7 +28,7 @@ class StreamThread(threading.Thread):
             self.manager = manager;
 
         def run(self):
-            #NotificationManager.get_notification_manager().notify("Streaming started")
+            GLib.idle_add(self.manager.send_callbacks)
             return_code = self.manager.ffmpeg_manager.process.wait()
             if return_code == 1:
                 print("FFMpeg has crashed.")
@@ -62,10 +62,12 @@ class StreamManager(threading.Thread):
         self.ffmpeg_manager.start()
         self.thread = StreamThread(self)
         self.thread.start()
+        NotificationManager.get_notification_manager().notify("Streaming started")
 
     def stop(self):
         self.ffmpeg_manager.stop()
         self.thread = None
+        NotificationManager.get_notification_manager().notify("Streaming stopped")
 
     def is_running(self):
         if self.thread is not None:

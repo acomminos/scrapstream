@@ -40,6 +40,7 @@ class StreamWindow(object):
         self.stream_button = builder.get_object("stream_button")
 
         # Settings
+        self.options_notebook = builder.get_object("options_notebook")
         self.custom_audio = builder.get_object("audio_usecustom")
         self.custom_audio_file = builder.get_object("audio_filechooser")
         self.framerate_scale = builder.get_object("framerate_scale")
@@ -109,18 +110,18 @@ class StreamWindow(object):
 
     def start_stream(self):
         StreamManager.get_stream_manager().start()
-        self.stream_button.set_label("Stop")
         self.webview.load_uri("http://twitch.tv/%s/popout" % self.username_entry.get_text())
 
     def stop_stream(self):
         StreamManager.get_stream_manager().stop()
-        self.stream_button.set_label("Go Live!")
 
     def stream_update(self, stream_manager):
         if stream_manager.is_running():
             self.stream_button.set_label("Stop")
+            self.options_notebook.set_sensitive(False)
         else:
             self.stream_button.set_label("Go Live!")
+            self.options_notebook.set_sensitive(True)
 
     def quit(self, button, userdata=None):
         self.dialog.hide()
