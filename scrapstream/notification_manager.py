@@ -16,22 +16,11 @@
 
 from gi.repository import Notify
 
-class NotificationManager(object):
+def init(app_name):
+    Notify.init(app_name)
 
-	singleton = None
-
-	@staticmethod
-	def get_notification_manager():
-		if NotificationManager.singleton is None:
-			NotificationManager.singleton = NotificationManager()
-		return NotificationManager.singleton
-
-	def __init__(self):
-		Notify.init("Scrapstream")
-
-	def notify(self, message, title="Scrapstream"):
-		"""Creates and shows a notification with the specified message and title (if passed).
-		Returns the created notification. """
-		notification = Notify.Notification.new(title, message, "dialog-information")
-		notification.show()
-		return notification
+def notify(message, title="Scrapstream"):
+    """Creates and shows a notification with the specified message and title (if passed). Returns the created notification. """
+    notification = Notify.Notification.new(title, message, "dialog-information")
+    notification.show()
+    return notification

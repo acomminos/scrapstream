@@ -14,113 +14,55 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from configparser import SafeConfigParser, NoSectionError
 from gi.repository import Gtk, Gdk
+import json
 import os
 
-class StreamSettings(object):
+SECTION_NAME = 'DEFAULT'
 
-    SCRAPSTREAM_SECTION = "scrapstream-settings"
-    SCRAPSTREAM_DIR = ".scrapstream"
+DEFAULTS = {
+    'username': '',
+    'stream_key': '',
+    'remember_me': False,
+    'capture_x': 0,
+    'capture_y': 0,
+    'capture_width': Gdk.Screen.get_default().get_width(),
+    'capture_height': Gdk.Screen.get_default().get_height(),
+    'output_width': Gdk.Screen.get_default().get_width(),
+    'output_height': Gdk.Screen.get_default().get_height(),
+    'frame_rate': 30,
+    'audio_source_id': 'Microphone',
+    'audio_youtube_url': '',
+    'audio_file': '',
+    'overlays': []
+}
 
-    config_dir = "%s/%s" % (os.getenv("HOME"), SCRAPSTREAM_DIR)
-    config_path = "%s/config" % config_dir
+CONFIG_DIR = os.getenv('XDG_CONFIG_HOME')
+if CONFIG_DIR is None:
+    CONFIG_DIR = os.path.expanduser('~/.config')
 
-    # Capture settings
-    capture_x = 0
-    capture_y = 0
-    capture_width = None
-    capture_height = None
-    output_width = None
-    output_height = None
-    frame_rate = 30
+CONFIG_PATH = "%s/scrapstream.conf" % CONFIG_DIR
 
-    # Credentials
-    username = ""
-    stream_key = ""
-    remember_me = False
+# Initial load of configuration file, occurs when module is first imported
+try:
+    with open(CONFIG_PATH, 'r') as file:
+        config = json.load(file)
+        # Set default if there exists no key for each property
+        for key, value in DEFAULTS.items():
+            if key not in config:
+                config[key] = value
+except FileNotFoundError:
+    print("Creating default config file.")
+    config = DEFAULTS
+except IOError:
+    config = DEFAULTS
 
-    # Advanced
-    custom_audio = False
-    audio_file = ""
+def get_config():
+    '''Returns a mutable dictionary of the current settings.'''
+    return config
 
-    @staticmethod
-    def load():
-        """ Loads the stream settings file. If not present, creates one. """
-
-        # Plug in default GDK screen size values, in case not set
-        screen = Gdk.Screen.get_default()
-        StreamSettings.capture_width = StreamSettings.output_width = screen.get_width()
-        StreamSettings.capture_height = StreamSettings.output_height = screen.get_height()
-        
-        try:
-            if not os.path.exists(StreamSettings.config_dir):
-                os.makedirs(StreamSettings.config_dir)
-
-            open(StreamSettings.config_path) # Attempt opening the config file, will throw IOError if does not exist
-            
-            config = SafeConfigParser()
-            config.read(StreamSettings.config_path)
-
-            # Streaming
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "username"):
-                StreamSettings.username = config.get(StreamSettings.SCRAPSTREAM_SECTION, "username")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "stream_key"):
-                StreamSettings.stream_key = config.get(StreamSettings.SCRAPSTREAM_SECTION, "stream_key")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "remember_me"):
-                StreamSettings.remember_me = config.getboolean(StreamSettings.SCRAPSTREAM_SECTION, "remember_me")
-
-            # Capture
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_x"):
-                StreamSettings.capture_x = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_x")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_y"):
-                StreamSettings.capture_y = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_y")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_width"):
-                StreamSettings.capture_width = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_width")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "capture_height"):
-                StreamSettings.capture_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "capture_height")
-
-            # Output
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "output_width"):
-                StreamSettings.output_width = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_width")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "output_height"):
-                StreamSettings.output_height = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "output_height")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate"):
-                StreamSettings.frame_rate = config.getint(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate")
-            
-            # Advanced
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "custom_audio"):
-                StreamSettings.custom_audio = config.getboolean(StreamSettings.SCRAPSTREAM_SECTION, "custom_audio")
-            if config.has_option(StreamSettings.SCRAPSTREAM_SECTION, "audio_file"):
-                StreamSettings.audio_file = config.get(StreamSettings.SCRAPSTREAM_SECTION, "audio_file")
-
-        except IOError:
-            print("Config file does not exist! Will create on next save.")
-        except NoSectionError:
-            print("Config file is incorrectly configured! Will recreate on next save.")
-
-    @staticmethod
-    def save():
-        config = SafeConfigParser()
-        config.add_section(StreamSettings.SCRAPSTREAM_SECTION)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "username", StreamSettings.username if StreamSettings.remember_me else "")
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "stream_key", StreamSettings.stream_key if StreamSettings.remember_me else "")
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "remember_me", "%r" % StreamSettings.remember_me)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_x", "%d" % StreamSettings.capture_x)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_y", "%d" % StreamSettings.capture_y)
-        if StreamSettings.capture_width is not None:
-            config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_width", "%d" % StreamSettings.capture_width)
-        if StreamSettings.capture_height is not None:
-            config.set(StreamSettings.SCRAPSTREAM_SECTION, "capture_height", "%d" % StreamSettings.capture_height)
-        if StreamSettings.output_width is not None:
-            config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_width", "%d" % StreamSettings.output_width)
-        if StreamSettings.output_height is not None:
-            config.set(StreamSettings.SCRAPSTREAM_SECTION, "output_height", "%d" % StreamSettings.output_height)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "frame_rate", "%d" % StreamSettings.frame_rate)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "custom_audio", "%r" % StreamSettings.custom_audio)
-        config.set(StreamSettings.SCRAPSTREAM_SECTION, "audio_file", StreamSettings.audio_file)
-
-        # Write configuration
-        config_file = open(StreamSettings.config_path, 'w')
-        config.write(config_file)
-        print("Config file saved.")
+def save():
+    '''Saves the current configuration to disk.'''
+    config_file = open(CONFIG_PATH, 'w')
+    json.dump(config, config_file, sort_keys=True, indent=4)
+    print("Configuration saved.")

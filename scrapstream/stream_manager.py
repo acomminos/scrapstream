@@ -19,7 +19,7 @@ import threading
 import time
 from error_window import ErrorWindow
 from ffmpeg_manager import FFMpegManager
-from notification_manager import NotificationManager
+import notification_manager
 
 class StreamThread(threading.Thread):
 
@@ -29,11 +29,12 @@ class StreamThread(threading.Thread):
 
         def run(self):
             GLib.idle_add(self.manager.send_callbacks)
-            return_code = self.manager.ffmpeg_manager.process.wait()
+            self.manager.ffmpeg_manager.start()
+            stdout, stderr = self.manager.ffmpeg_manager.process.communicate()
+            return_code = self.manager.ffmpeg_manager.process.poll()
             if return_code == 1:
                 print("FFMpeg has crashed.")
-                self.manager.error()
-
+                self.manager.error(stderr)
             GLib.idle_add(self.manager.send_callbacks)
             self.manager.thread = None
 
@@ -51,23 +52,22 @@ class StreamManager(threading.Thread):
         self.callbacks = []
         self.ffmpeg_manager = FFMpegManager()
 
-    def error(self):
+    def error(self, error):
         """ Creates an error window informing the user that the passed process has crashed. """
         error_window = ErrorWindow()
-        error_window.set_output(self.ffmpeg_manager.get_error())
+        error_window.set_output(error)
         error_window.show()
 
     def start(self):
         assert self.thread == None
-        self.ffmpeg_manager.start()
         self.thread = StreamThread(self)
         self.thread.start()
-        NotificationManager.get_notification_manager().notify("Streaming started")
+        notification_manager.notify("Streaming started")
 
     def stop(self):
         self.ffmpeg_manager.stop()
         self.thread = None
-        NotificationManager.get_notification_manager().notify("Streaming stopped")
+        notification_manager.notify("Streaming stopped")
 
     def is_running(self):
         if self.thread is not None:
@@ -82,4 +82,4 @@ class StreamManager(threading.Thread):
         self.callbacks.append(callback)
 
     def unsubscribe(self, callback):
-        self.callbacks.delete(callback)
+        self.callbacks.remove(callback)

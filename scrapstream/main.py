@@ -16,16 +16,12 @@
 
 import signal
 from gi.repository import Gtk, GObject
-#from scrap_indicator import ScrapIndicator
-from stream_settings import StreamSettings
 from stream_window import StreamWindow
-from notification_manager import NotificationManager
+import notification_manager
 
 def main():
-        StreamSettings.load() # Load settings
-
+        notification_manager.init("Scrapstream")
         GObject.threads_init() # Necessary to use multithreading
-        #ScrapIndicator() TODO re-add ubuntu indicator, coding from arch with i3 now
         window = StreamWindow()
         window.show()
         signal.signal(signal.SIGINT, signal.SIG_DFL)
